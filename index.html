@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Vizzio Assessment Comportamental</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#070A0F;--surface:#0D1117;--card:#131820;--border:#1E2533;
+  --teal:#00D4C8;--teal2:#00B8AE;--teal-glow:rgba(0,212,200,.15);
+  --text:#E8ECF4;--muted:#8892A4;--subtle:#3A4456;
+  --red:#EF4444;--green:#22C55E;--amber:#F59E0B;--blue:#3B82F6;
+  --r:14px;--r-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.page{display:none;min-height:100vh;flex-direction:column}.page.on{display:flex}
+.btn{background:var(--teal);color:#000;border:none;border-radius:var(--r-sm);padding:13px 22px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn:hover{background:var(--teal2);box-shadow:0 4px 16px rgba(0,212,200,.3)}
+.btn:disabled{background:var(--border);color:var(--subtle);cursor:default}
+.btn-sm{padding:7px 14px;border-radius:var(--r-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;font-family:inherit}
+.btn-sm:hover{border-color:var(--teal);color:var(--teal)}
+.btn-teal{background:var(--teal)!important;color:#000!important;border-color:var(--teal)!important}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.field input,.field select{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;font-family:inherit;appearance:none}
+.field input:focus,.field select:focus{border-color:var(--teal)}
+.field input::placeholder{color:var(--subtle)}
+/* LOGIN */
+.login-bg{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,212,200,.08) 0%,transparent 60%)}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:44px 40px;width:100%;max-width:420px;text-align:center}
+.brand-mark{display:inline-flex;align-items:center;gap:12px;margin-bottom:32px;padding:12px 22px;background:var(--card);border:1px solid var(--border);border-radius:14px}
+.brand-bar{width:4px;height:34px;background:linear-gradient(180deg,var(--teal),var(--teal2));border-radius:99px}
+.brand-name{font-size:22px;font-weight:900;color:var(--text);letter-spacing:2px;line-height:1;display:block}
+.brand-tag{font-size:9px;font-weight:700;color:var(--teal);letter-spacing:4px;margin-top:2px;display:block}
+.err-msg{color:var(--red);font-size:13px;margin-top:10px;display:none}
+/* TOPBAR */
+.topbar{background:rgba(13,17,23,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-bar{width:3px;height:28px;background:linear-gradient(180deg,var(--teal),var(--teal2));border-radius:99px}
+.t-name{font-size:16px;font-weight:800;color:var(--text);letter-spacing:1px;line-height:1}
+.t-tag{font-size:9px;font-weight:700;color:var(--teal);letter-spacing:3px}
+/* ADMIN */
+.abody{flex:1;overflow-y:auto;padding:20px;max-width:960px;margin:0 auto;width:100%}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:22px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;position:relative;overflow:hidden}
+.sc::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),transparent)}
+.sc-val{font-size:26px;font-weight:800}.sc-lbl{font-size:12px;color:var(--muted);margin-top:3px}
+.sec{font-size:11px;font-weight:700;color:var(--subtle);letter-spacing:.1em;text-transform:uppercase;margin:20px 0 10px}
+.cfg{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fb-bar{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--muted)}
+.fb-dot{width:9px;height:9px;border-radius:50%;background:var(--subtle);flex-shrink:0}
+.link-wrap{margin-top:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px}
+.link-url{font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:10px;line-height:1.6}
+.cbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.cbtn-copy{background:var(--border);color:var(--text)}.cbtn-copy:hover{background:var(--subtle)}
+.cbtn-wp{background:#25D366;color:#fff}.cbtn-wp:hover{background:#1FA855}
+/* TABLE */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;color:var(--subtle);text-transform:uppercase;letter-spacing:.08em;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);background:var(--card)}
+td{padding:12px 14px;border-bottom:1px solid rgba(30,37,51,.5);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.cD{background:rgba(239,68,68,.12);color:#F87171}
+.cI{background:rgba(245,158,11,.12);color:#FCD34D}
+.cS{background:rgba(34,197,94,.12);color:#4ADE80}
+.cC{background:rgba(59,130,246,.12);color:#60A5FA}
+.s-done{color:var(--green);font-weight:600}.s-pend{color:var(--amber)}
+.abtn{padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s;margin-right:4px}
+.abtn:hover{border-color:var(--teal);color:var(--teal)}
+.abtn-del{color:var(--red)!important;border-color:rgba(239,68,68,.2)!important;background:rgba(239,68,68,.04)!important}
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;overflow-y:auto;padding:20px}
+.overlay.open{display:flex;align-items:flex-start;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:700px;overflow:hidden}
+.modal-hdr{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.modal-hdr h3{font-size:15px;font-weight:700}
+.mbody{padding:20px;overflow-y:auto;max-height:84vh}
+/* ASSESSMENT CHAT */
+.a-prog{flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px 10px}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.prog-ph{font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.07em;text-transform:uppercase}
+.prog-ct{font-size:12px;color:var(--muted)}
+.prog-trk{height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:99px;transition:width .5s}
+.chat-win{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.bbl{max-width:86%;font-size:14px;line-height:1.75;animation:bIn .22s ease}
+.bbl-ai{align-self:flex-start;background:var(--card);border:1px solid var(--border);border-radius:16px 16px 16px 3px;padding:13px 16px}
+.bbl-user{align-self:flex-end;background:rgba(0,212,200,.1);border:1px solid rgba(0,212,200,.2);border-radius:16px 16px 3px 16px;padding:11px 15px}
+.ai-lbl{font-size:10px;font-weight:700;color:var(--teal);letter-spacing:.06em;margin-bottom:5px;display:block;text-transform:uppercase}
+.opts-blk{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.opt-row{display:flex;gap:9px;align-items:flex-start}
+.opt-k{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--subtle);margin-top:2px}
+.opt-v{font-size:13px;color:var(--muted);line-height:1.5}
+.chat-tip{margin-top:10px;padding:8px 12px;border-left:2px solid var(--teal);background:rgba(0,212,200,.04);border-radius:0 8px 8px 0;font-size:12px;color:var(--subtle);font-style:italic}
+.typing-bbl{align-self:flex-start;background:var(--card);border:1px solid var(--border);border-radius:16px 16px 16px 3px;padding:12px 16px;display:flex;gap:5px;align-items:center}
+.td{width:7px;height:7px;border-radius:50%;background:var(--border);animation:tdot 1.2s ease-in-out infinite}
+.td:nth-child(2){animation-delay:.15s}.td:nth-child(3){animation-delay:.3s}
+@keyframes tdot{0%,60%,100%{background:var(--border);transform:translateY(0)}30%{background:var(--teal);transform:translateY(-4px)}}
+@keyframes bIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-bar{flex-shrink:0;padding:11px 14px;background:rgba(7,10,15,.96);border-top:1px solid var(--border)}
+.chat-bar-inner{display:flex;gap:10px;align-items:center;max-width:680px;margin:0 auto}
+.chat-inp{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:26px;padding:11px 18px;font-size:14px;color:var(--text);outline:none;font-family:inherit;transition:border-color .2s}
+.chat-inp:focus{border-color:var(--teal)}
+.chat-inp::placeholder{color:var(--subtle)}
+.chat-inp:disabled{opacity:.5}
+.send{width:42px;height:42px;border-radius:50%;background:var(--teal);color:#000;border:none;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.send:hover{background:var(--teal2);transform:scale(1.05)}
+.send:disabled{background:var(--border);color:var(--subtle);cursor:default;transform:none}
+/* LOADING */
+.ldwrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ldtxt{font-size:14px;color:var(--muted);text-align:center;max-width:280px;line-height:1.6}
+/* RESULTADO */
+.r-scroll{flex:1;overflow-y:auto}
+.r-hero{background:linear-gradient(135deg,var(--surface),var(--card));border-bottom:1px solid var(--border);padding:30px 22px;text-align:center;position:relative;overflow:hidden}
+.r-hero::after{content:"";position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:260px;height:260px;background:radial-gradient(rgba(0,212,200,.08),transparent 70%);pointer-events:none}
+.r-name{font-size:23px;font-weight:800;margin-bottom:4px;position:relative;z-index:1}
+.r-meta{font-size:13px;color:var(--muted);position:relative;z-index:1}
+.r-badge{display:inline-block;margin-top:12px;padding:7px 20px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.04em;border:1.5px solid var(--teal);color:var(--teal);background:rgba(0,212,200,.08);position:relative;z-index:1}
+.r-body{padding:18px;max-width:680px;margin:0 auto}
+.r-sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.r-sec-ttl{font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.disc4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.di{text-align:center;padding:12px 6px;border-radius:10px;background:var(--card);border:1px solid var(--border)}
+.di.lead{border-color:var(--teal);background:rgba(0,212,200,.06)}
+.di-l{font-size:22px;font-weight:900;line-height:1}
+.di-p{font-size:14px;font-weight:700;color:var(--teal);margin-top:3px}
+.di-n{font-size:10px;color:var(--muted);margin-top:2px}
+.bar-item{margin-bottom:11px}
+.bar-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px}
+.bar-bg{height:7px;background:var(--card);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .8s}
+.sab-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sab-lbl{font-size:13px;color:var(--text);width:138px;flex-shrink:0}
+.sab-bg{flex:1;height:7px;background:var(--card);border-radius:99px;overflow:hidden}
+.sab-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--red));border-radius:99px}
+.sab-num{font-size:12px;color:var(--muted);width:32px;text-align:right}
+/* THANKS */
+.thanks{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(0,212,200,.05),transparent)}
+.t-check{font-size:68px;margin-bottom:18px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.t-title{font-size:24px;font-weight:800;margin-bottom:8px}
+.t-sub{font-size:14px;color:var(--muted);max-width:340px;line-height:1.8;margin-bottom:24px}
+.pdf-btn{display:inline-flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--teal);color:var(--teal);padding:13px 26px;border-radius:var(--r);font-size:15px;font-weight:700;cursor:pointer;border-style:solid;font-family:inherit;transition:all .2s}
+.pdf-btn:hover{background:var(--teal);color:#000;box-shadow:0 6px 20px rgba(0,212,200,.3)}
+.credit{font-size:11px;color:var(--subtle);margin-top:30px;opacity:.5;line-height:1.6}
+/* ADMIN INTERP */
+.ibox{background:rgba(0,212,200,.03);border:1px solid rgba(0,212,200,.15);border-radius:var(--r);padding:16px;margin-top:12px}
+.ibox-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.isec{font-size:13px;font-weight:700;color:var(--teal);margin:12px 0 5px;border-bottom:1px solid var(--border);padding-bottom:4px}
+.ip{font-size:13px;color:#A8B4C4;line-height:1.85;margin-bottom:6px}
+/* TOAST */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(50px);background:var(--teal);color:#000;padding:10px 22px;border-radius:30px;font-size:14px;font-weight:700;opacity:0;transition:all .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ── PAPEL TIMBRADO ── */
+.print-header{display:none;justify-content:space-between;align-items:center;padding:18px 24px 14px;border-bottom:2px solid #00D4C8;margin-bottom:16px}
+.print-header-left{display:flex;align-items:center}
+.print-header-right{text-align:right}
+.print-divider{display:none;height:1px;background:linear-gradient(90deg,#00D4C8,transparent);margin-bottom:18px}
+.print-footer{display:none;margin-top:20px;padding:0 24px 16px}
+.print-footer-line{height:1px;background:#00D4C8;margin-bottom:8px}
+
+@media print{
+  @page{margin:10mm 12mm;size:A4}
+  body{background:#fff!important;color:#111!important;font-size:11px}
+  .topbar,.chat-bar,.a-prog,.thanks,.page:not(#pgResult){display:none!important}
+  #pgResult{display:block!important;min-height:auto}
+  .r-scroll{overflow:visible!important}
+  /* Papel timbrado aparece */
+  .print-header{display:flex!important}
+  .print-divider{display:block!important}
+  .print-footer{display:block!important}
+  /* Hero */
+  .r-hero{background:#f0fffe!important;padding:16px 20px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .r-name{font-size:18px!important}.r-meta{font-size:11px!important}.r-badge{font-size:11px!important}
+  /* Seções compactas */
+  .r-body{padding:10px 16px!important}
+  .r-sec{background:#f9fafb!important;border:1px solid #e5e7eb!important;padding:10px 12px!important;margin-bottom:8px!important;break-inside:avoid}
+  .r-sec-ttl{font-size:10px!important;margin-bottom:8px!important}
+  /* DISC */
+  .disc4{gap:5px!important}
+  .di{background:#f0fffe!important;padding:8px 4px!important}
+  .di.lead{border:2px solid #0d9488!important}
+  .di-l{font-size:16px!important}.di-p{font-size:12px!important}.di-n{font-size:9px!important}
+  /* Barras */
+  .bar-item{margin-bottom:6px!important}
+  .bar-top{font-size:10px!important;margin-bottom:3px!important}
+  .bar-bg,.bar-fill,.sab-bg,.sab-fill{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  /* Sabotadores */
+  .sab-row{margin-bottom:6px!important}
+  .sab-lbl{font-size:11px!important;width:110px!important}
+  .sab-num{font-size:10px!important}
+  /* Esconder botão PDF na impressão */
+  .pdf-btn{display:none!important}
+}
+@media(max-width:520px){.row2{grid-template-columns:1fr}.disc4{grid-template-columns:repeat(2,1fr)}.login-card{padding:28px 20px}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN ADMIN -->
+<div class="page on" id="pgLogin">
+  <div class="login-bg">
+    <div class="login-card">
+      <div class="brand-mark">
+        <div class="brand-bar"></div>
+        <div><span class="brand-name">VIZZIO</span><span class="brand-tag">TRAINING</span></div>
+      </div>
+      <h2 style="font-size:19px;margin-bottom:5px">Painel de Assessment</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:26px">Diagnóstico Comportamental Avançado</p>
+      <div class="field"><label>Usuário</label><input type="text" id="lUser" placeholder="vizzio" onkeydown="if(event.key==='Enter')login()"></div>
+      <div class="field"><label>Senha</label><input type="password" id="lPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+      <button class="btn" style="width:100%;margin-top:4px" onclick="login()">Entrar no Painel</button>
+      <div class="err-msg" id="lErr">Usuário ou senha incorretos.</div>
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--subtle)">Desenvolvido por <strong style="color:var(--muted)">Tríade Resultados</strong> · Alexandre Amorim</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAINEL ADMIN -->
+<div class="page" id="pgAdmin">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-bar"></div>
+      <div><div class="t-name">VIZZIO</div><div class="t-tag">TRAINING</div></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="roleTag" style="display:none;font-size:10px;font-weight:700;padding:4px 10px;border-radius:99px;border:1.5px solid var(--teal);color:var(--teal);background:rgba(0,212,200,.06);letter-spacing:.05em">👤 ADMIN</span>
+      <button class="btn-sm btn-teal" onclick="refreshRes()">↺ Atualizar</button>
+      <button class="btn-sm" onclick="logout()">Sair</button>
+    </div>
+  </div>
+  <div class="abody">
+    <div class="fb-bar"><div class="fb-dot" id="fbDot"></div><span id="fbMsg">Verificando conexão...</span></div>
+    <div class="stats" id="statsGrid"></div>
+    <div class="sec">Configurar Assessment</div>
+    <div class="cfg">
+      <div class="row2">
+        <div class="field"><label>Nome do Assessment</label><input id="cfgName" value="Vizzio Assessment" placeholder="Nome do assessment"></div>
+        <div class="field"><label>Empresa cliente</label><input id="cfgCo" placeholder="Ex: TechCorp Ltda"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Nível dos participantes</label>
+          <select id="cfgLv">
+            <option value="lider">Líderes / Gestores / C-Level</option>
+            <option value="op">Operacional / Técnico / Colaboradores</option>
+          </select>
+        </div>
+        <div class="field" id="superAdminKeyField" style="display:none">
+          <label>Chave IA (Claude: sk-ant... / Groq: gsk_...) — backup local</label>
+          <input id="cfgKey" placeholder="Cole aqui sua chave de API..." oninput="saveKey(this.value);atualizarStatusChave()">
+          <div id="keyStatus" style="margin-top:6px;font-size:12px;padding:6px 10px;border-radius:6px;display:none"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+        <button class="btn" style="max-width:180px" onclick="genLink()">Gerar Link →</button>
+        <div id="superAdminButtons" style="display:none;gap:10px;flex-wrap:wrap">
+          <button class="btn" style="max-width:160px;background:var(--card);color:var(--teal);border:1.5px solid var(--teal)" onclick="salvarChaveIA()">💾 Salvar chave</button>
+          <button class="btn" style="max-width:160px;background:var(--card);color:#FCD34D;border:1.5px solid #F59E0B" onclick="testarChaveIA()">🧪 Testar chave</button>
+        </div>
+      </div>
+      <div id="fbAlert" style="display:none;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:var(--r-sm);padding:12px 14px;margin-top:12px;font-size:13px;color:var(--amber);line-height:1.7">
+        ⚠️ Firebase não configurado — resultados salvos apenas localmente.<br>
+        <a href="https://console.firebase.google.com" target="_blank" style="color:var(--teal)">console.firebase.google.com</a>
+      </div>
+    </div>
+    <div id="linkBox" style="display:none">
+      <div style="font-size:12px;color:var(--muted);margin:10px 0 6px">Link gerado para o participante:</div>
+      <div class="link-wrap">
+        <div class="link-url" id="linkUrl"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="cbtn cbtn-copy" onclick="copyLink()">📋 Copiar</button>
+          <button class="cbtn cbtn-wp" onclick="sendWhatsApp()">💬 Enviar pelo WhatsApp</button>
+        </div>
+      </div>
+    </div>
+    <div class="sec">Resultados Recebidos</div>
+    <div class="tbl-wrap">
+      <table><thead><tr>
+        <th>Nome</th><th>Empresa</th><th>Cargo</th><th>Perfil</th><th>Status</th><th>Ações</th>
+      </tr></thead>
+      <tbody id="resTbody">
+        <tr><td colspan="6" style="color:var(--subtle);text-align:center;padding:24px">Nenhum resultado ainda. Gere um link e envie ao participante.</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESULTADO ADMIN -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="mtitle">Perfil Comportamental</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm btn-teal" onclick="printAdminPDF()" id="btnPrintAdmin">📄 Salvar PDF</button>
+        <button class="btn-sm" onclick="closeModal()">✕ Fechar</button>
+      </div>
+    </div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<!-- ASSESSMENT -->
+<div class="page" id="pgAssess">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-bar"></div>
+      <div><div class="t-name">VIZZIO</div><div class="t-tag">TRAINING</div></div>
+    </div>
+  </div>
+  <!-- Dados do participante -->
+  <div id="step0" style="flex:1;overflow-y:auto;padding:28px 20px">
+    <div style="max-width:520px;margin:0 auto">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:6px" id="aTitle">Assessment Comportamental</h2>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6" id="aSubtitle">Antes de começar, nos diga um pouco sobre você.</p>
+      <div class="field"><label>Nome completo</label><input id="pName" placeholder="Ex: João da Silva"></div>
+      <div class="field"><label>Cargo / Função</label><input id="pRole" placeholder="Ex: Gerente Comercial"></div>
+      <div class="field"><label>Empresa</label><input id="pCo" placeholder="Ex: TechCorp"></div>
+      <div class="field"><label>WhatsApp (opcional)</label><input id="pPhone" type="tel" placeholder="(00) 00000-0000"></div>
+      <button class="btn" style="width:100%;margin-top:6px" onclick="startAssessment()">Começar →</button>
+    </div>
+  </div>
+  <!-- Chat -->
+  <div id="stepQ" style="display:none;flex:1;flex-direction:column;overflow:hidden">
+    <div class="a-prog">
+      <div class="prog-row">
+        <span class="prog-ph" id="phTag">Perfil Comportamental</span>
+        <span class="prog-ct" id="progTxt">1 / 26</span>
+      </div>
+      <div class="prog-trk"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="chat-win" id="chatWin"></div>
+    <div class="chat-bar">
+      <div class="chat-bar-inner">
+        <input class="chat-inp" id="chatInp" placeholder="Digite a letra da resposta (ex: A) e seu comentário..." autocomplete="off" onkeydown="if(event.key==='Enter')sendAns()">
+        <button class="send" id="sendBtn" onclick="sendAns()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="page" id="pgLoad">
+  <div class="topbar">
+    <div class="topbar-brand"><div class="topbar-bar"></div><div><div class="t-name">VIZZIO</div><div class="t-tag">TRAINING</div></div></div>
+  </div>
+  <div class="ldwrap">
+    <div class="spinner"></div>
+    <div class="ldtxt" id="ldTxt">Calculando seu perfil comportamental...</div>
+  </div>
+</div>
+
+<!-- RESULTADO PARTICIPANTE -->
+<div class="page" id="pgResult">
+  <div class="topbar">
+    <div class="topbar-brand"><div class="topbar-bar"></div><div><div class="t-name">VIZZIO</div><div class="t-tag">TRAINING</div></div></div>
+    <button class="btn-sm" onclick="window.print()" style="display:flex;align-items:center;gap:6px">📄 Salvar PDF</button>
+  </div>
+  <div class="r-scroll" id="rScroll">
+    <!-- preenchido dinamicamente -->
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════════════════════════════
+var FB_CFG = {
+  apiKey:"AIzaSyBwJhEL5utPr5sIWejb3HiwAcqSPA8Y09k",
+  authDomain:"vizzio-assessment.firebaseapp.com",
+  projectId:"vizzio-assessment",
+  storageBucket:"vizzio-assessment.firebasestorage.app",
+  messagingSenderId:"357901497238",
+  appId:"1:357901497238:web:7da5159656d270906b63b7"
+};
+var DB=null, FB_OK=false;
+
+function initFirebase(){
+  var dot=document.getElementById("fbDot"),msg=document.getElementById("fbMsg"),al=document.getElementById("fbAlert");
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB_CFG);
+    DB=firebase.firestore();
+    DB.enablePersistence({synchronizeTabs:true}).catch(function(){});
+    DB.collection("resultados").limit(1).get()
+      .then(function(){
+        FB_OK=true;
+        if(dot){dot.style.background="#22C55E";}
+        if(msg){msg.textContent="Banco conectado — sincronização em tempo real ✓";msg.style.color="#22C55E";}
+        flushPending();
+      })
+      .catch(function(){
+        FB_OK=false;
+        if(dot){dot.style.background="#EF4444";}
+        if(msg){msg.textContent="Erro ao conectar Firebase.";msg.style.color="#EF4444";}
+      });
+  }catch(e){
+    FB_OK=false;
+    if(dot){dot.style.background="#F59E0B";}
+    if(msg){msg.textContent="Firebase não configurado — modo local ativo.";msg.style.color="#F59E0B";}
+    if(al) al.style.display="block";
+  }
+}
+
+var GROQ = "";
+
+// ═══════════════════════════════════════════════════════════════
+// PERSISTÊNCIA
+// ═══════════════════════════════════════════════════════════════
+function saveKey(k){
+  try{
+    var clean = (k||"").trim().replace(/\s+/g,""); // remove qualquer espaço/quebra
+    localStorage.setItem("vz_key", clean);
+    console.log("[Vizzio] Chave salva. Tamanho:", clean.length, "Tipo:", clean.indexOf("sk-ant")===0?"Claude":clean.indexOf("gsk_")===0?"Groq":"Desconhecido");
+    return clean;
+  }catch(e){
+    console.error("[Vizzio] Erro ao salvar chave:", e);
+    return "";
+  }
+}
+function loadKey(){
+  try{
+    var k = (localStorage.getItem("vz_key")||"").trim().replace(/\s+/g,"");
+    return k;
+  }catch(e){return "";}
+}
+function hasValidKey(){
+  var k = loadKey();
+  return k && k.length >= 30 && (k.indexOf("sk-ant")===0 || k.indexOf("gsk_")===0);
+}
+function saveResults(){try{localStorage.setItem("vz_res",JSON.stringify(STATE.results));}catch(e){}}
+function loadResults(){try{STATE.results=JSON.parse(localStorage.getItem("vz_res")||"[]");}catch(e){STATE.results=[];}}
+function savePending(r){try{var q=JSON.parse(localStorage.getItem("vz_pend")||"[]");if(!q.find(function(x){return x.id===r.id;})){q.push(r);localStorage.setItem("vz_pend",JSON.stringify(q));}}catch(e){}}
+function removePending(id){try{var q=JSON.parse(localStorage.getItem("vz_pend")||"[]").filter(function(x){return x.id!==id;});localStorage.setItem("vz_pend",JSON.stringify(q));}catch(e){}}
+function flushPending(){if(!FB_OK||!DB)return;try{JSON.parse(localStorage.getItem("vz_pend")||"[]").forEach(function(r){saveToFirebase(r,0);});}catch(e){}}
+
+function saveToFirebase(r,attempts){
+  attempts=attempts||0;
+  savePending(r);
+  if(!FB_OK||!DB){return;}
+  var clean={};
+  Object.keys(r).forEach(function(k){clean[k]=r[k];});
+  if(clean.respostas){clean.respostas=clean.respostas.map(function(x){return{qi:x.qi,letra:x.letra,comentario:(x.comentario||"").substring(0,300)};});}
+  DB.collection("resultados").doc(String(r.id)).set(clean)
+    .then(function(){removePending(r.id);})
+    .catch(function(){if(attempts<3)setTimeout(function(){saveToFirebase(r,attempts+1);},3000*(attempts+1));});
+}
+
+function loadFromFirebase(cb){
+  if(!FB_OK||!DB){loadResults();if(cb)cb();return;}
+  DB.collection("resultados").get()
+    .then(function(snap){
+      var remote=[];snap.forEach(function(doc){remote.push(doc.data());});
+      remote.sort(function(a,b){return(b.id||0)-(a.id||0);});
+      var pend=[];try{pend=JSON.parse(localStorage.getItem("vz_pend")||"[]");}catch(e){}
+      var ids=remote.map(function(r){return String(r.id);});
+      pend.forEach(function(r){if(ids.indexOf(String(r.id))===-1)remote.push(r);});
+      STATE.results=remote;saveResults();if(cb)cb();
+    })
+    .catch(function(){loadResults();if(cb)cb();});
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════════════
+var STATE={
+  cfg:null, part:null, qi:0,
+  answers:{},    // qi -> índice da alternativa selecionada
+  comments:{},   // qi -> comentário escrito
+  respostas:[],  // array completo para a IA
+  results:[],
+  isSuperAdmin:false  // true para Alexandre, false para cliente Vizzio
+};
+
+var DISC_NAMES={D:"Dominante",I:"Influente",S:"Estável",C:"Criterioso"};
+var TEMP_NAMES={Co:"Colérico",Sa:"Sanguíneo",Fl:"Fleumático",Me:"Melancólico"};
+
+// ═══════════════════════════════════════════════════════════════
+// PERGUNTAS — 26 perguntas conversacionais
+// Sistema de scoring: cada alternativa tem peso diferente por dimensão
+// ═══════════════════════════════════════════════════════════════
+// dim: dimensão primária que mede
+// score[]: peso de cada alternativa para essa dimensão (0-5)
+// dims_multi[]: dimensões secundárias afetadas com pesos [{dim,score}]
+var QQ = [
+
+// ── DISC — Dominância ──────────────────────────────────────
+{id:0,phase:"Perfil Comportamental",dim:"D",
+ ctx:"Imagine que você está no trabalho e surge uma situação urgente. Sem tempo para esperar, sem todas as informações na mão.",
+ q:"O que acontece naturalmente com você nesse momento?",
+ opts:["Tomo a frente imediatamente — prefiro agir e ajustar depois","Envolvo as pessoas chave antes de qualquer movimento","Analiso com calma o que está acontecendo antes de decidir","Sigo o processo que existe e improviso dentro dele","Depende muito do quanto aquilo me afeta diretamente"],
+ score:[5,3,2,3,3],
+ multi:[{dim:"I",w:[3,4,2,2,2]},{dim:"C",w:[1,2,4,5,3]}]},
+
+{id:1,phase:"Perfil Comportamental",dim:"D",
+ ctx:"Numa discussão importante, você tem um ponto de vista diferente da maioria. Todos estão te olhando.",
+ q:"O que você costuma fazer?",
+ opts:["Defendo minha posição — não mudo só por pressão social","Tento convencer mostrando os benefícios do meu ponto","Ouço com atenção antes de decidir se vale a pena insistir","Peço dados e evidências para embasar melhor a discussão","Cedo na forma mas mantenho a essência do que acredito"],
+ score:[5,4,3,4,3],
+ multi:[{dim:"I",w:[3,5,3,2,2]},{dim:"C",w:[2,2,3,5,3]}]},
+
+// ── DISC — Influência ─────────────────────────────────────
+{id:2,phase:"Perfil Comportamental",dim:"I",
+ ctx:"Você está numa reunião importante e percebe que a energia do grupo está baixa — as pessoas estão desengajadas.",
+ q:"O que você sente vontade de fazer nessa situação?",
+ opts:["Assumo a condução e começo a mover o grupo com energia","Crio um momento mais leve para reconectar as pessoas","Fico atento ao que está incomodando e tento resolver","Foco no que precisa ser decidido e empurro para a agenda","Observo um pouco mais antes de me posicionar"],
+ score:[4,5,3,3,2],
+ multi:[{dim:"D",w:[4,2,2,4,2]},{dim:"S",w:[2,3,5,3,4]}]},
+
+{id:3,phase:"Perfil Comportamental",dim:"I",
+ ctx:"Uma apresentação importante para um grupo que ainda não te conhece. Você está de frente para essas pessoas.",
+ q:"O que acontece dentro de você nesse momento?",
+ opts:["Me energizo — esse tipo de situação me motiva de verdade","Fico animado mas com um frio na barriga que passa rápido","Me preparo muito porque não gosto de ser pego de surpresa","Prefiro muito mais o bastidor — apresentações não são minha praia","Me adapto bem, mas não é onde me sinto mais confortável"],
+ score:[5,4,3,1,2],
+ multi:[{dim:"D",w:[4,3,3,2,2]},{dim:"S",w:[2,2,3,5,4]}]},
+
+// ── DISC — Estabilidade ───────────────────────────────────
+{id:4,phase:"Perfil Comportamental",dim:"S",
+ ctx:"Seu gestor chega com uma mudança de última hora. Tudo que você planejou para a semana vai mudar.",
+ q:"Como você reage internamente a isso?",
+ opts:["Adapto rápido — mudança faz parte, não tem muito o que fazer","Fico um pouco incomodado mas me ajusto bem","Preciso de um tempo para processar — não gosto de mudança brusca","Me irrito internamente, mas consigo me controlar","Depende do quanto aquela mudança impacta o que já está em curso"],
+ score:[2,3,5,2,4],
+ multi:[{dim:"D",w:[4,3,2,4,3]},{dim:"C",w:[2,3,4,3,4]}]},
+
+{id:5,phase:"Perfil Comportamental",dim:"S",
+ ctx:"Uma semana puxada, muitas entregas. No limite, alguém da equipe pede sua ajuda urgente.",
+ q:"O que você faz?",
+ opts:["Paro e ajudo — o time em primeiro lugar, sempre","Avalio quanto tempo leva e, se der, ajudo com prazer","Explico que não consigo agora, mas marcamos pra logo depois","Ajudo, mas deixo claro que espero reciprocidade","Depende de quem é e do quanto me compromete"],
+ score:[5,4,3,3,3],
+ multi:[{dim:"I",w:[4,3,2,3,2]},{dim:"D",w:[2,3,4,3,3]}]},
+
+// ── DISC — Conformidade ───────────────────────────────────
+{id:6,phase:"Perfil Comportamental",dim:"C",
+ ctx:"Você recebe uma tarefa nova. Ainda não foi explicada completamente — há espaço para improvisar.",
+ q:"Como você prefere encarar isso?",
+ opts:["Começo logo e vou ajustando no caminho — aprendo na prática","Busco entender o contexto antes de qualquer ação","Monto um plano detalhado antes de dar o primeiro passo","Pesquiso referências e melhores práticas antes de agir","Faço um escopo mínimo e vou iterando com feedback"],
+ score:[1,3,4,5,4],
+ multi:[{dim:"D",w:[5,3,2,2,3]},{dim:"S",w:[2,4,5,4,4]}]},
+
+{id:7,phase:"Perfil Comportamental",dim:"C",
+ ctx:"Você está revisando um trabalho antes de entregar. Está bom — mas poderia estar melhor com mais 2 horas.",
+ q:"O que você decide?",
+ opts:["Entrego do jeito que está — prazo é prazo","Ajusto o que der em 15 minutos e entrego","Trabalho mais até chegar no padrão que considero adequado","Reviso item por item — não entrego sem ter certeza","Entrego, mas peço feedback para continuar melhorando"],
+ score:[1,3,4,5,4],
+ multi:[{dim:"D",w:[5,4,2,1,3]},{dim:"I",w:[2,3,3,2,4]}]},
+
+// ── TEMPERAMENTOS ─────────────────────────────────────────
+{id:8,phase:"Temperamento e Emoções",dim:"Co",
+ ctx:"Imagine que algo dá errado no trabalho — um erro importante, um conflito, um atraso crítico.",
+ q:"Qual é sua primeira reação, de verdade?",
+ opts:["Resolvo na hora e já parto pra próxima — não fico ruminando","Respiro fundo, processo e ajo com calma depois","Quero entender tudo que aconteceu antes de qualquer movimento","Fico irritado por um momento, mas me reorganizo rápido","Absorvo internamente — preciso de tempo para me reequilibrar"],
+ score:[4,3,3,5,2],
+ multi:[{dim:"Sa",w:[3,4,3,2,2]},{dim:"Me",w:[2,3,5,2,4]},{dim:"Fl",w:[3,5,4,2,3]}]},
+
+{id:9,phase:"Temperamento e Emoções",dim:"Sa",
+ ctx:"É segunda-feira de manhã. A semana será intensa — muitas demandas, muita gente contando com você.",
+ q:"Como você normalmente entra nessa semana?",
+ opts:["Com energia — quanto mais movimento, mais me animo","Focado e determinado — vou executar o que precisa","Com cuidado — organizo tudo primeiro antes de agir","Relutante — preciso de um tempo para engatar no ritmo","Depende de como foi o fim de semana"],
+ score:[5,3,2,1,3],
+ multi:[{dim:"Co",w:[4,4,2,2,3]},{dim:"Fl",w:[2,4,5,4,3]}]},
+
+{id:10,phase:"Temperamento e Emoções",dim:"Me",
+ ctx:"Você precisa tomar uma decisão importante — com prazo curto e informações incompletas.",
+ q:"Como seu processo de decisão funciona naturalmente?",
+ opts:["Decido rápido com o que tenho — tempo também é recurso","Consulto quem precisa consultar antes de decidir","Analiso com cuidado os dados disponíveis antes de qualquer coisa","Sigo minha intuição — ela raramente me trai nessas horas","Procuro mais informação mesmo que isso atrase um pouco"],
+ score:[2,3,5,3,4],
+ multi:[{dim:"Co",w:[5,3,2,3,2]},{dim:"Fl",w:[3,4,4,4,5]}]},
+
+{id:11,phase:"Temperamento e Emoções",dim:"Fl",
+ ctx:"Um colega comete um erro que impacta o trabalho de toda a equipe. Você precisa abordar isso.",
+ q:"O que você naturalmente faz?",
+ opts:["Dou um feedback direto e imediato — clareza resolve mais rápido","Espero o momento certo e converso de forma que motive a melhora","Converso em particular, com empatia, oferecendo apoio concreto","Analiso o que aconteceu e proponho um plano para não repetir","Espero a pessoa perceber sozinha — não gosto de confronto"],
+ score:[3,4,5,4,2],
+ multi:[{dim:"Co",w:[5,3,2,3,1]},{dim:"Me",w:[3,3,4,5,2]}]},
+
+// ── DOMINÂNCIA CEREBRAL (Ned Herrmann) ───────────────────
+{id:12,phase:"Dominância Cerebral",dim:"L",
+ ctx:"Você está diante de um problema complexo que precisa ser resolvido.",
+ q:"Como seu pensamento funciona naturalmente nesse processo?",
+ opts:["Começo pelos dados — preciso de fatos e evidências para decidir","Imagino o resultado ideal e trabalho de trás para frente","Penso nas pessoas envolvidas e nos impactos humanos primeiro","Mapeio riscos, recursos e etapas antes de qualquer coisa","Combino tudo — dados, intuição e contexto humano"],
+ score:[5,2,2,4,3],
+ multi:[{dim:"R",w:[2,5,4,2,3]}]},
+
+{id:13,phase:"Dominância Cerebral",dim:"R",
+ ctx:"Você precisa criar algo novo — um projeto, uma solução, uma estratégia que ainda não existe.",
+ q:"Como você naturalmente se engaja com isso?",
+ opts:["Com entusiasmo — possibilidades abertas me energizam muito","Estruturo o processo criativo antes de começar a criar","Busco inspiração em referências externas e benchmarks","Processo internamente primeiro, sozinho, antes de compartilhar","Preciso de dados e exemplos concretos para criar com segurança"],
+ score:[5,2,3,4,2],
+ multi:[{dim:"L",w:[2,4,3,3,5]}]},
+
+{id:14,phase:"Dominância Cerebral",dim:"L",
+ ctx:"Uma reunião está acontecendo. O assunto é importante para você.",
+ q:"O que mais te irrita ou te desconecta nesse ambiente?",
+ opts:["Quando não há conclusões claras nem próximos passos definidos","Excesso de burocracia e regras que travam a criatividade","Ambiente frio, sem conexão humana entre as pessoas","Falta de pauta, organização e objetividade na condução","Quando se fala muito e nada é decidido ou encaminhado"],
+ score:[5,2,3,4,4],
+ multi:[{dim:"R",w:[2,5,4,2,3]}]},
+
+// ── INTELIGÊNCIA POSITIVA (Shirzad Chamine) ──────────────
+{id:15,phase:"Inteligência Positiva",dim:"QP",
+ ctx:"Uma semana difícil. As coisas fogem do controle. Resultados não vêm. A pressão está alta.",
+ q:"O que acontece dentro de você nessas semanas?",
+ opts:["Consigo manter a perspectiva — encontro algo de positivo na situação","Fico abalado mas me recupero relativamente rápido","Levo um tempo para processar antes de voltar ao equilíbrio","Fico bastante impactado e preciso de apoio para me reorganizar","Me isolo para processar — depois de um tempo me reconecto"],
+ score:[5,4,3,2,3]},
+
+{id:16,phase:"Inteligência Positiva",dim:"QP",
+ ctx:"Você erra — algo sai errado por responsabilidade sua. Acontece.",
+ q:"Como você trata isso internamente?",
+ opts:["Aprendo, ajusto e sigo em frente com leveza — erro é parte do processo","Me cobro bastante, mas consigo passar por isso sem muita demora","Fico me questionando por um tempo antes de conseguir me perdoar","Sinto uma culpa forte que persiste e afeta outras áreas da vida","Cada erro me mobiliza a melhorar — uso como combustível"],
+ score:[5,3,2,1,4]},
+
+// ── SABOTADORES INTERNOS (Shirzad Chamine) ───────────────
+{id:17,phase:"Sabotadores Internos",dim:"Juiz",
+ ctx:"Você não atingiu um resultado que esperava. Algo ficou abaixo do que considerava aceitável.",
+ q:"Qual é a voz que fala mais alto dentro de você nesses momentos?",
+ opts:["Uma voz muito dura — sou muito exigente e crítico comigo mesmo","Reconheço o erro, aprendo e sigo — não fico me punindo","Me cobro, mas consigo equilibrar exigência e autocompaixão","Raramente me cobro demais — prefiro focar no que fazer agora","Fico um tempo desconfortável mas consigo me recuperar"],
+ score:[5,1,3,1,3]},
+
+{id:18,phase:"Sabotadores Internos",dim:"Controlador",
+ ctx:"Você delega uma tarefa para alguém. A pessoa vai fazer diferente de como você faria.",
+ q:"O que acontece internamente enquanto aquilo está sendo feito?",
+ opts:["Fico ansioso — fica difícil confiar que vai sair do jeito que precisa","Observo, mas consigo confiar no processo e no outro","Interfiro apenas se perceber que algo vai comprometer o resultado","Solto completamente — confio nas pessoas e no resultado","Monitoro de longe, mas sem interferir a menos que necessário"],
+ score:[5,3,4,1,3]},
+
+{id:19,phase:"Sabotadores Internos",dim:"Realizador",
+ ctx:"Fim de dia. Há pendências abertas — coisas que ficaram para amanhã.",
+ q:"Como você se sente ao 'desligar' com pendências em aberto?",
+ opts:["Difícil desligar — as pendências ficam pesando na minha cabeça","Consigo desligar quando estabeleço prioridades claras","Listo o que ficou, organizo e aí consigo descansar tranquilo","Aceito bem — sei que nem tudo pode ser resolvido no mesmo dia","Depende da urgência — nem toda pendência me afeta da mesma forma"],
+ score:[5,3,4,1,3]},
+
+{id:20,phase:"Sabotadores Internos",dim:"Esquivador",
+ ctx:"Algo te incomoda profundamente em uma relação de trabalho. Mas falar vai gerar tensão.",
+ q:"O que você costuma fazer nessa situação?",
+ opts:["Evito ao máximo — prefiro absorver a não criar conflito","Às vezes falo, às vezes não — depende do quanto está me afetando","Me posiciono quando necessário, mas escolho o momento e a forma","Falo diretamente quando algo me incomoda — não guardo","Processo internamente, espero um tempo e aí abordo com calma"],
+ score:[5,3,4,1,3]},
+
+{id:21,phase:"Sabotadores Internos",dim:"Hiperanalitico",
+ ctx:"Uma decisão importante na sua frente. Você tem informação suficiente para decidir.",
+ q:"O que costuma acontecer com você antes de realmente decidir?",
+ opts:["Analiso demais e às vezes trava — paralisia por análise real","Busco mais informação mesmo sabendo que já tenho o suficiente","Decido com os dados que tenho sem precisar de tudo mapeado","Decido rápido e ajusto conforme o resultado vem","Consulto algumas pessoas para validar antes de decidir"],
+ score:[5,4,2,1,3]},
+
+{id:22,phase:"Sabotadores Internos",dim:"Prestativo",
+ ctx:"Situação pessoal: você claramente precisava de algo para si mesmo, mas alguém pediu sua ajuda.",
+ q:"O que acontece?",
+ opts:["Ajudo — me sinto responsável pelo bem-estar das pessoas próximas","Às vezes ajudo, às vezes priorizo — depende da situação","Tenho limites relativamente claros e consigo comunicá-los","Priorizo a mim mesmo — aprendi que isso não é egoísmo","Ajudo, mas carrego um peso quando não cuido de mim"],
+ score:[5,3,2,1,4]},
+
+// ── PERFIL SOB PRESSÃO + RELACIONAMENTO ──────────────────
+{id:23,phase:"Perfil Sob Pressão",dim:"D",
+ ctx:"Prazos apertados, muitas cobranças ao mesmo tempo, expectativas altas em cima de você.",
+ q:"Como você funciona nesse tipo de pressão?",
+ opts:["Fico mais focado — pressão me ativa e melhora minha performance","Funciono bem mas sinto o custo físico e emocional depois","A qualidade cai — pressão excessiva me desorganiza","Fico ansioso mas entrego — o custo interno é alto","Me organizo, priorizo e crio sistemas para não afundar"],
+ score:[5,3,2,2,4],
+ multi:[{dim:"Co",w:[5,3,2,2,4]},{dim:"QP",w:[4,3,1,1,4]}]},
+
+{id:24,phase:"Perfil Sob Pressão",dim:"S",
+ ctx:"Um conflito direto com alguém importante no trabalho. Posições opostas, tensão real.",
+ q:"O que você naturalmente faz nessa situação?",
+ opts:["Enfrento direto — não deixo conflito sem resolução","Busco um mediador ou um caminho de conciliação","Evito o confronto direto — prefiro esperar a tensão baixar","Escuto muito antes de me posicionar — ouço todos os lados","Me posiciono com cuidado, escolhendo bem o momento e as palavras"],
+ score:[2,3,5,4,4],
+ multi:[{dim:"D",w:[5,3,1,2,3]},{dim:"Esquivador",w:[1,3,5,3,3]}]},
+
+{id:25,phase:"Perfil Sob Pressão",dim:"I",
+ ctx:"Você está trabalhando em algo que importa muito para você. As pessoas ao redor não estão engajadas.",
+ q:"Como você lida com isso?",
+ opts:["Me incomoda pouco — consigo trabalhar bem sozinho","Fico chateado — preciso do engajamento do grupo para me motivar","Busco engajar as pessoas — não consigo trabalhar bem no isolamento","Me isolo e foco — às vezes produtividade solo é mais eficiente","Entendo que cada um tem seu processo e respeito isso"],
+ score:[2,3,5,3,4],
+ multi:[{dim:"S",w:[3,2,4,5,4]},{dim:"Sa",w:[2,4,5,2,3]}]}
+];
+
+// ═══════════════════════════════════════════════════════════════
+// SISTEMA DE CHAT
+// ═══════════════════════════════════════════════════════════════
+var chatDone = false;
+var chatSending = false; // Trava para evitar duplo envio ao responder rápido
+
+var REACOES_POSITIVAS = [
+  "Que resposta interessante! ",
+  "Obrigada por compartilhar isso. ",
+  "Faz muito sentido. ",
+  "Gostei da sua honestidade aqui. ",
+  "Essa perspectiva diz muito sobre você. ",
+  "Entendido, muito obrigada. ",
+  "Que reflexão importante! ",
+  "Isso revela bastante sobre como você funciona. "
+];
+
+var REACAO_COM_COMENTARIO = [
+  "Você comentou isso: [<<c>>] — isso enriquece muito a análise. ",
+  "Adorei o contexto que você trouxe — [<<c>>]. ",
+  "Seu complemento faz toda a diferença: [<<c>>]."
+];
+
+var PHASE_TRANSITIONS = {
+  "Temperamento e Emoções": "Estamos avançando bem! Agora quero entrar em uma área que revela muito sobre quem você é: como você lida com emoções, pressão e situações que testam seu equilíbrio. Seja bem honesto — não há julgamentos aqui.",
+  "Dominância Cerebral": "Excelente. Agora vamos explorar algo fascinante: como o seu cérebro naturalmente prefere processar informações e resolver problemas. Isso vai ajudar a entender seu estilo de pensamento.",
+  "Inteligência Positiva": "Ótimo progresso! Agora vamos falar sobre resiliência e inteligência emocional — especificamente sobre como você lida com os desafios internos que todos nós enfrentamos.",
+  "Sabotadores Internos": "Chegamos à parte mais profunda da conversa. Vou te perguntar sobre padrões internos que todos temos — alguns nos ajudam, outros nos limitam. Aqui a honestidade é o que gera mais valor para você.",
+  "Perfil Sob Pressão": "Quase lá! Últimas perguntas — estas são sobre como você se comporta nas situações mais desafiadoras. É onde o perfil real de alguém realmente aparece."
+};
+
+function addBubble(type, html, noAnim) {
+  var win = document.getElementById("chatWin");
+  if (!win) return;
+  var div = document.createElement("div");
+  div.className = "bbl bbl-" + type + (noAnim ? "" : "");
+  div.innerHTML = html;
+  win.appendChild(div);
+  // Scroll suave para mostrar a nova bolha
+  setTimeout(function(){
+    div.scrollIntoView({behavior:"smooth", block:"end"});
+  }, 60);
+  return div;
+}
+
+function showTyping(cb, delay) {
+  var win = document.getElementById("chatWin");
+  if (!win) { if(cb) cb(); return; }
+  var t = document.createElement("div");
+  t.className = "typing-bbl";
+  t.innerHTML = '<div class="td"></div><div class="td"></div><div class="td"></div>';
+  win.appendChild(t);
+  t.scrollIntoView({behavior:"smooth", block:"end"});
+  setTimeout(function(){
+    if (t.parentNode) t.parentNode.removeChild(t);
+    if (cb) cb();
+  }, delay || 900);
+}
+
+function buildQuestionHTML(q) {
+  var LBLS = ["A","B","C","D","E","F"];
+  var h = '<span class="ai-lbl">Vizzio</span>';
+  h += '<div style="margin-bottom:8px;font-size:15px;color:#C8D0DC;font-style:italic;line-height:1.75;font-weight:500">' + q.ctx + '</div>';
+  h += '<div style="font-size:15px;font-weight:600;line-height:1.6;margin-bottom:10px">' + q.q + '</div>';
+  h += '<div class="opts-blk">';
+  for (var i = 0; i < q.opts.length; i++) {
+    h += '<div class="opt-row"><div class="opt-k">' + LBLS[i] + '</div><div class="opt-v">' + q.opts[i] + '</div></div>';
+  }
+  h += '</div>';
+  h += '<div class="chat-tip">Digite a letra da sua escolha. Se quiser, adicione um comentário — ex: <em>"A — costumo agir assim porque..."</em></div>';
+  return h;
+}
+
+function renderCurrentQuestion() {
+  var q = QQ[STATE.qi];
+  if (!q) return;
+  var tot = QQ.length;
+  var pct = Math.round(STATE.qi / tot * 100);
+  document.getElementById("progFill").style.width = pct + "%";
+  document.getElementById("progTxt").textContent = (STATE.qi + 1) + " / " + tot;
+  document.getElementById("phTag").textContent = q.phase;
+
+  // Transição de fase
+  var prevQ = STATE.qi > 0 ? QQ[STATE.qi - 1] : null;
+  if (prevQ && prevQ.phase !== q.phase && PHASE_TRANSITIONS[q.phase]) {
+    showTyping(function() {
+      addBubble("ai", '<span class="ai-lbl">Vizzio</span>' + PHASE_TRANSITIONS[q.phase]);
+      showTyping(function() {
+        addBubble("ai", buildQuestionHTML(q));
+      }, 800);
+    }, 600);
+  } else {
+    showTyping(function() {
+      addBubble("ai", buildQuestionHTML(q));
+    }, 700);
+  }
+}
+
+function sendAns() {
+  if (chatDone) return;
+  if (chatSending) return; // Evita duplo disparo enquanto animação está rolando
+  var inp = document.getElementById("chatInp");
+  var raw = inp.value.trim();
+  if (!raw) { inp.focus(); return; }
+
+  var LBLS = ["A","B","C","D","E","F"];
+  var q = QQ[STATE.qi];
+
+  // ── Parser inteligente: letra, texto livre, combinações ──
+  var letraMatch = raw.match(/^([A-Fa-f])\b/);
+  var entreMatch = raw.match(/entre\s+(?:a\s+)?(?:letra\s+)?([A-Fa-f])\s+e\s+(?:a\s+)?(?:letra\s+)?([A-Fa-f])/i);
+
+  var idx = -1, idx2 = -1, isBlended = false, textoLivre = false;
+  var comentario = "";
+
+  if (entreMatch) {
+    idx  = LBLS.indexOf(entreMatch[1].toUpperCase());
+    idx2 = LBLS.indexOf(entreMatch[2].toUpperCase());
+    isBlended = true;
+    comentario = raw.replace(entreMatch[0],"").trim();
+  } else if (letraMatch) {
+    idx = LBLS.indexOf(letraMatch[1].toUpperCase());
+    var secondMatch = raw.slice(1).match(/(?:\s+e\s+|\s+ou\s+)([A-Fa-f])\b/i);
+    if (secondMatch) { idx2 = LBLS.indexOf(secondMatch[1].toUpperCase()); isBlended = true; }
+    comentario = raw.replace(/^[A-Fa-f][\s\-\u2013\u2014:,.]*/,"").trim();
+  } else {
+    // Texto livre: match semântico
+    textoLivre = true;
+    var rawLower = raw.toLowerCase();
+    var bestIdx = -1, bestScore = 0;
+    for (var oi = 0; oi < q.opts.length; oi++) {
+      var optWords = q.opts[oi].toLowerCase().split(/\s+/);
+      var score = 0;
+      optWords.forEach(function(w){ if (w.length > 3 && rawLower.indexOf(w) >= 0) score++; });
+      if (score > bestScore) { bestScore = score; bestIdx = oi; }
+    }
+    idx = bestIdx >= 0 ? bestIdx : Math.floor(q.opts.length / 2);
+    comentario = raw;
+  }
+
+  if (idx2 >= q.opts.length) idx2 = -1;
+  if (idx < 0) idx = 0;
+
+  // ── Validação: rejeitar letra inválida isolada ou texto muito curto ──
+  var rawTrimmed = raw.trim();
+  var ehLetraIsolada = /^[A-Za-z]$/.test(rawTrimmed);
+  var letraValida = LBLS.slice(0, q.opts.length).indexOf(rawTrimmed.toUpperCase()) >= 0;
+  var textoMuitoCurto = textoLivre && rawTrimmed.split(/\s+/).length < 3;
+
+  if (ehLetraIsolada && !letraValida) {
+    showTyping(function() {
+      addBubble("ai",
+        '<span class="ai-lbl">Vizzio</span>' +
+        'A letra <strong>' + rawTrimmed.toUpperCase() + '</strong> não corresponde a nenhuma alternativa. ' +
+        'Escolha entre <strong>A</strong> e <strong>' + LBLS[q.opts.length-1] + '</strong>, ' +
+        'ou escreva uma resposta com pelo menos 3 palavras. \uD83D\uDE0A'
+      );
+    }, 400);
+    inp.value = ""; inp.focus(); return;
+  }
+
+  if (textoMuitoCurto) {
+    showTyping(function() {
+      addBubble("ai",
+        '<span class="ai-lbl">Vizzio</span>' +
+        'Pode desenvolver um pouquinho mais? Escreva pelo menos uma frase curta para eu entender melhor. \uD83D\uDE0A'
+      );
+    }, 400);
+    inp.value = ""; inp.focus(); return;
+  }
+
+  var letraDisplay = textoLivre
+    ? "(resposta livre)"
+    : isBlended && idx2 >= 0 ? LBLS[idx] + " e " + LBLS[idx2] : LBLS[idx];
+
+  inp.value = "";
+
+  // Travar envio e desabilitar input durante o processamento
+  chatSending = true;
+  inp.disabled = true;
+  document.getElementById("sendBtn").disabled = true;
+
+  // Exibir resposta do usuário
+  var userText = '<strong>' + letraDisplay + '</strong>' + (comentario ? ' — ' + comentario : '');
+  var userBbl = addBubble("user", userText);
+  // Scroll imediato para mostrar resposta enviada
+  if (userBbl) setTimeout(function(){ userBbl.scrollIntoView({behavior:"smooth", block:"nearest"}); }, 50);
+
+  // Salvar resposta
+  // Para blended: fazer média ponderada dos scores
+  STATE.answers[STATE.qi] = isBlended && idx2 >= 0 ? {idx1:idx, idx2:idx2, blend:true} : idx;
+  STATE.comments[STATE.qi] = comentario;
+  STATE.respostas[STATE.qi] = {
+    qi: STATE.qi,
+    fase: q.phase,
+    pergunta: q.q,
+    contexto: q.ctx,
+    letra: letraDisplay,
+    resposta: q.opts[idx] + (isBlended && idx2 >= 0 ? " / " + q.opts[idx2] : ""),
+    comentario: comentario
+  };
+
+  var isLast = (STATE.qi === QQ.length - 1);
+  var nome = STATE.part && STATE.part.name ? STATE.part.name.split(" ")[0] : "você";
+
+  if (isLast) {
+    var reacao = REACOES_POSITIVAS[STATE.qi % REACOES_POSITIVAS.length];
+    if (comentario && comentario.length > 10) {
+      var tmpl = REACAO_COM_COMENTARIO[STATE.qi % REACAO_COM_COMENTARIO.length];
+      reacao = tmpl.replace("<<c>>", comentario.substring(0, 60) + (comentario.length > 60 ? "..." : ""));
+    }
+    showTyping(function() {
+      addBubble("ai",
+        '<span class="ai-lbl">Vizzio</span>' +
+        reacao +
+        '<br><br>' +
+        'Você chegou ao final, <strong>' + nome + '</strong>! 🎉<br><br>' +
+        'Processando suas respostas agora para gerar seu Perfil Comportamental completo...'
+      );
+      document.getElementById("chatInp").disabled = true;
+      document.getElementById("sendBtn").disabled = true;
+      setTimeout(function() { compute(); }, 1200);
+    }, 700);
+  } else {
+    var reacao2 = REACOES_POSITIVAS[STATE.qi % REACOES_POSITIVAS.length];
+    if (comentario && comentario.length > 10) {
+      var tmpl2 = REACAO_COM_COMENTARIO[STATE.qi % REACAO_COM_COMENTARIO.length];
+      reacao2 = tmpl2.replace("<<c>>", comentario.substring(0, 60) + (comentario.length > 60 ? "..." : ""));
+    }
+    showTyping(function() {
+      addBubble("ai", '<span class="ai-lbl">Vizzio</span>' + reacao2);
+      STATE.qi++;
+      chatSending = false; // Liberar trava
+      inp.disabled = false;
+      document.getElementById("sendBtn").disabled = false;
+      inp.focus();
+      renderCurrentQuestion();
+    }, 600);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CÁLCULO DO PERFIL — Scoring científico
+// ═══════════════════════════════════════════════════════════════
+function compute() {
+  showPage("pgLoad");
+  setTimeout(function() { _doCompute(); }, 80);
+}
+
+function _doCompute() {
+  // Acumuladores
+  var disc = {D:0,I:0,S:0,C:0};
+  var dcnt = {D:0,I:0,S:0,C:0};
+  var temp = {Co:0,Sa:0,Fl:0,Me:0};
+  var tcnt = {Co:0,Sa:0,Fl:0,Me:0};
+  var brainL = 0, brainR = 0, brainCnt = 0;
+  var qpSum = 0, qpCnt = 0;
+  var sabs = {Juiz:0,Controlador:0,Realizador:0,Esquivador:0,Hiperanalitico:0,Prestativo:0};
+  var sabCnt = {Juiz:0,Controlador:0,Realizador:0,Esquivador:0,Hiperanalitico:0,Prestativo:0};
+
+  QQ.forEach(function(q, qi) {
+    var ans = STATE.answers[qi];
+    if (ans === undefined) return;
+
+    var getScore = function(scoreArr, answerData) {
+      if (answerData && typeof answerData === "object" && answerData.blend) {
+        var s1 = scoreArr[answerData.idx1] || 0;
+        var s2 = scoreArr[answerData.idx2] || 0;
+        return (s1 + s2) / 2;
+      }
+      return scoreArr[answerData] || 0;
+    };
+
+    var primaryScore = getScore(q.score, ans);
+    var norm = (primaryScore / 5) * 100;
+
+    // Dimensão primária
+    if (q.dim === "D"){ disc.D += norm; dcnt.D++; }
+    else if (q.dim === "I"){ disc.I += norm; dcnt.I++; }
+    else if (q.dim === "S"){ disc.S += norm; dcnt.S++; }
+    else if (q.dim === "C"){ disc.C += norm; dcnt.C++; }
+    else if (q.dim === "Co"){ temp.Co += norm; tcnt.Co++; }
+    else if (q.dim === "Sa"){ temp.Sa += norm; tcnt.Sa++; }
+    else if (q.dim === "Fl"){ temp.Fl += norm; tcnt.Fl++; }
+    else if (q.dim === "Me"){ temp.Me += norm; tcnt.Me++; }
+    else if (q.dim === "L"){ brainL += norm; brainCnt++; }
+    else if (q.dim === "R"){ brainR += norm; brainCnt++; }
+    else if (q.dim === "QP"){ qpSum += norm; qpCnt++; }
+    else if (sabs[q.dim] !== undefined){ sabs[q.dim] += norm; sabCnt[q.dim]++; }
+
+    // Dimensões secundárias
+    if (q.multi) {
+      q.multi.forEach(function(m) {
+        var ms = getScore(m.w, ans);
+        var mn = (ms / 5) * 100;
+        var d = m.dim;
+        if (d === "D"){ disc.D += mn * 0.4; dcnt.D += 0.4; }
+        else if (d === "I"){ disc.I += mn * 0.4; dcnt.I += 0.4; }
+        else if (d === "S"){ disc.S += mn * 0.4; dcnt.S += 0.4; }
+        else if (d === "C"){ disc.C += mn * 0.4; dcnt.C += 0.4; }
+        else if (d === "Co"){ temp.Co += mn * 0.4; tcnt.Co += 0.4; }
+        else if (d === "Sa"){ temp.Sa += mn * 0.4; tcnt.Sa += 0.4; }
+        else if (d === "Fl"){ temp.Fl += mn * 0.4; tcnt.Fl += 0.4; }
+        else if (d === "Me"){ temp.Me += mn * 0.4; tcnt.Me += 0.4; }
+        else if (d === "QP"){ qpSum += mn * 0.4; qpCnt += 0.4; }
+        else if (sabs[d] !== undefined){ sabs[d] += mn * 0.4; sabCnt[d] += 0.4; }
+      });
+    }
+  });
+
+  // Calcular médias e normalizar para 100
+  function avg(sum, cnt) { return cnt > 0 ? Math.round(sum / cnt) : 0; }
+
+  var discRaw = {D:avg(disc.D,dcnt.D), I:avg(disc.I,dcnt.I), S:avg(disc.S,dcnt.S), C:avg(disc.C,dcnt.C)};
+  // Normalizar DISC para somar 100%
+  var discTotal = discRaw.D + discRaw.I + discRaw.S + discRaw.C;
+  var discFinal = {
+    D: discTotal > 0 ? Math.round(discRaw.D/discTotal*100) : 25,
+    I: discTotal > 0 ? Math.round(discRaw.I/discTotal*100) : 25,
+    S: discTotal > 0 ? Math.round(discRaw.S/discTotal*100) : 25,
+    C: discTotal > 0 ? Math.round(discRaw.C/discTotal*100) : 25
+  };
+  // Encontrar dominante
+  var discDom = "D";
+  ["I","S","C"].forEach(function(k){ if(discFinal[k] > discFinal[discDom]) discDom = k; });
+
+  var tempRaw = {Co:avg(temp.Co,tcnt.Co), Sa:avg(temp.Sa,tcnt.Sa), Fl:avg(temp.Fl,tcnt.Fl), Me:avg(temp.Me,tcnt.Me)};
+  var tempTotal = tempRaw.Co + tempRaw.Sa + tempRaw.Fl + tempRaw.Me;
+  var tempFinal = {
+    Co: tempTotal > 0 ? Math.round(tempRaw.Co/tempTotal*100) : 25,
+    Sa: tempTotal > 0 ? Math.round(tempRaw.Sa/tempTotal*100) : 25,
+    Fl: tempTotal > 0 ? Math.round(tempRaw.Fl/tempTotal*100) : 25,
+    Me: tempTotal > 0 ? Math.round(tempRaw.Me/tempTotal*100) : 25
+  };
+
+  var bL = brainCnt > 0 ? Math.round(brainL / brainCnt) : 50;
+  var bR = brainCnt > 0 ? Math.round(brainR / brainCnt) : 50;
+  // Normalizar cérebro
+  var bTotal = bL + bR;
+  bL = bTotal > 0 ? Math.round(bL/bTotal*100) : 50;
+  bR = 100 - bL;
+
+  var qpScore = qpCnt > 0 ? Math.round(qpSum/qpCnt) : 50;
+
+  // Normalizar sabotadores
+  var sabFinal = {};
+  Object.keys(sabs).forEach(function(k){
+    sabFinal[k] = sabCnt[k] > 0 ? Math.round(sabs[k]/sabCnt[k]) : 0;
+  });
+
+  var result = {
+    id: Date.now(),
+    status: "done",
+    name: STATE.part.name,
+    phone: STATE.part.phone,
+    co: STATE.part.co,
+    role: STATE.part.role,
+    level: STATE.cfg ? STATE.cfg.lv : "lider",
+    disc: discFinal,
+    discDom: discDom,
+    temp: tempFinal,
+    brain: {L:bL, R:bR},
+    qp: {score:qpScore},
+    sab: sabFinal,
+    respostas: STATE.respostas,
+    adminAI: "",
+    at: new Date().toISOString()
+  };
+
+  STATE.current = result;
+
+  // Salvar imediatamente (sem IA — não bloqueamos o participante)
+  var existing = STATE.results.findIndex(function(x){ return x.id === result.id; });
+  if (existing >= 0) STATE.results[existing] = result; else STATE.results.push(result);
+  saveResults();
+  setTimeout(function(){ saveToFirebase(result, 0); }, 100);
+
+  // Mostrar resultado
+  showResult(result);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXIBIR RESULTADO — participante vê gráficos, depois tela de obrigado
+// ═══════════════════════════════════════════════════════════════
+function showResult(r) {
+  var scroll = document.getElementById("rScroll");
+  scroll.innerHTML = buildResultHTML(r);
+  showPage("pgResult");
+  setTimeout(function() { animateBars(); }, 300);
+  // Auto-enviar ao Firebase em background + gerar IA admin
+  setTimeout(function() {
+    gerarAIAdmin(r);
+  }, 1000);
+}
+
+function buildResultHTML(r) {
+  var dn = DISC_NAMES;
+  var tn = TEMP_NAMES;
+  var DISC_COLORS = {D:"#F87171",I:"#FCD34D",S:"#4ADE80",C:"#60A5FA"};
+  var TEMP_COLORS = {Co:"#EF4444",Sa:"#F59E0B",Fl:"#22C55E",Me:"#3B82F6"};
+  var BRAIN_COLORS = {L:"#3B82F6",R:"#8B5CF6"};
+
+  var profileLabel = dn[r.discDom] + " (" + r.discDom + ")";
+
+  var h = '';
+  // ── CABEÇALHO PAPEL TIMBRADO (aparece no PDF) ──────────────────
+  h += '<div class="print-header">';
+  h += '<div class="print-header-left">';
+  h += '<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">';
+  h += '<rect x="0" y="6" width="5" height="28" rx="2" fill="#00D4C8"/>';
+  h += '<text x="12" y="22" font-family="Arial,sans-serif" font-size="18" font-weight="900" letter-spacing="2" fill="#0A0A0A">VIZZIO</text>';
+  h += '<text x="12" y="34" font-family="Arial,sans-serif" font-size="9" font-weight="700" letter-spacing="4" fill="#00D4C8">TRAINING</text>';
+  h += '</svg>';
+  h += '</div>';
+  h += '<div class="print-header-right">';
+  h += '<div style="font-size:11px;color:#666;text-align:right;line-height:1.6">';
+  h += 'Assessment Comportamental<br>';
+  h += '<span style="color:#00D4C8;font-weight:700">Diagnóstico de Perfil</span><br>';
+  h += new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+  h += '</div></div></div>';
+  h += '<div class="print-divider"></div>';
+  // ── HERO ─────────────────────────────────────────────────────────
+  h += '<div class="r-hero">';
+  h += '<div class="r-name">' + r.name + '</div>';
+  h += '<div class="r-meta">' + (r.role||"") + (r.co ? " · " + r.co : "") + '</div>';
+  h += '<div class="r-badge">Perfil Dominante: ' + profileLabel + '</div>';
+  h += '</div>';
+
+  h += '<div class="r-body">';
+
+  // DISC
+  h += '<div class="r-sec"><div class="r-sec-ttl">🎯 Perfil DISC</div>';
+  h += '<div class="disc4">';
+  ["D","I","S","C"].forEach(function(k){
+    var isLead = k === r.discDom;
+    h += '<div class="di' + (isLead?' lead':'') + '">';
+    h += '<div class="di-l" style="color:' + DISC_COLORS[k] + '">' + k + '</div>';
+    h += '<div class="di-p">' + r.disc[k] + '%</div>';
+    h += '<div class="di-n">' + dn[k] + '</div>';
+    h += '</div>';
+  });
+  h += '</div></div>';
+
+  // Temperamentos
+  h += '<div class="r-sec"><div class="r-sec-ttl">🌡️ Temperamentos</div>';
+  Object.keys(tn).forEach(function(k){
+    var pct = r.temp[k];
+    h += '<div class="bar-item">';
+    h += '<div class="bar-top"><span>' + tn[k] + '</span><span>' + pct + '%</span></div>';
+    h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + pct + '" style="width:0%;background:' + TEMP_COLORS[k] + '"></div></div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Dominância Cerebral
+  h += '<div class="r-sec"><div class="r-sec-ttl">🧠 Dominância Cerebral</div>';
+  [{k:"L",n:"Esquerdo — Lógico / Analítico",c:"#3B82F6"},{k:"R",n:"Direito — Criativo / Intuitivo",c:"#8B5CF6"}].forEach(function(x){
+    var pct = r.brain[x.k];
+    h += '<div class="bar-item">';
+    h += '<div class="bar-top"><span>' + x.n + '</span><span>' + pct + '%</span></div>';
+    h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + pct + '" style="width:0%;background:' + x.c + '"></div></div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // QP
+  var qpColor = r.qp.score >= 70 ? "#22C55E" : r.qp.score >= 45 ? "#F59E0B" : "#EF4444";
+  h += '<div class="r-sec"><div class="r-sec-ttl">✨ Inteligência Positiva (QP)</div>';
+  h += '<div class="bar-item">';
+  h += '<div class="bar-top"><span>Quociente Positivo</span><span style="color:' + qpColor + '">' + r.qp.score + '/100</span></div>';
+  h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + r.qp.score + '" style="width:0%;background:' + qpColor + '"></div></div>';
+  h += '</div></div>';
+
+  // Sabotadores
+  h += '<div class="r-sec"><div class="r-sec-ttl">⚡ Sabotadores Internos</div>';
+  var sabEntries = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];});
+  var sabNames = {Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+  sabEntries.forEach(function(e){
+    h += '<div class="sab-row">';
+    h += '<div class="sab-lbl">' + (sabNames[e[0]]||e[0]) + '</div>';
+    h += '<div class="sab-bg"><div class="sab-fill" data-pct="' + e[1] + '" style="width:0%"></div></div>';
+    h += '<div class="sab-num">' + e[1] + '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Tela de obrigado (não aparece no print)
+  // ── RODAPÉ PAPEL TIMBRADO ──────────────────────────────────────
+  h += '<div class="print-footer">';
+  h += '<div class="print-footer-line"></div>';
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px">';
+  h += '<div style="font-size:10px;color:#999">Vizzio Training · Assessment Comportamental · vizziotraining.com.br</div>';
+  h += '<div style="font-size:10px;color:#999">Desenvolvido por Tríade Resultados · Alexandre Amorim</div>';
+  h += '</div></div>';
+
+  h += '<div class="thanks">';
+  h += '<div class="t-check">✅</div>';
+  h += '<div class="t-title">Obrigado, ' + (r.name ? r.name.split(" ")[0] : "você") + '!</div>';
+  h += '<div class="t-sub">Seu perfil comportamental foi processado e registrado com sucesso.<br>Sua jornada de autoconhecimento começa aqui.</div>';
+  h += '<button class="pdf-btn" onclick="window.print()">📄 Baixar meu relatório em PDF</button>';
+  h += '<div class="credit">Vizzio Training · Assessment Comportamental<br>Desenvolvido por <strong>Tríade Resultados</strong> · Alexandre Amorim</div>';
+  h += '</div>';
+
+  h += '</div>'; // r-body
+  return h;
+}
+
+function animateBars() {
+  document.querySelectorAll(".bar-fill[data-pct], .sab-fill[data-pct]").forEach(function(el){
+    var pct = parseInt(el.getAttribute("data-pct")) || 0;
+    el.style.width = pct + "%";
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IA ADMIN — gerar interpretação em background
+// ═══════════════════════════════════════════════════════════════
+function gerarConclusao(r) {
+  var key = loadKey() || GROQ;
+  if (!key) return;
+  var dn = DISC_NAMES;
+  var tn = TEMP_NAMES;
+  var sabTop = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];}).slice(0,3).map(function(e){return e[0];}).join(", ");
+
+  var prompt = "Você é especialista em comportamento humano. Escreva uma CONCLUSÃO INTEGRATIVA em 3 parágrafos fluidos e humanizados para o próprio participante ler (primeira ou segunda pessoa).\n\n" +
+    "Perfil: " + r.name + " | DISC Dominante: " + r.discDom + " (" + dn[r.discDom] + ") | " +
+    "D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C + "% | " +
+    "Temp. principal: " + (function(){ var t=r.temp; var max=Math.max(t.Co,t.Sa,t.Fl,t.Me); if(max===t.Co)return"Colérico"; if(max===t.Sa)return"Sanguíneo"; if(max===t.Fl)return"Fleumático"; return"Melancólico"; })() + " | " +
+    "Cérebro: Esq=" + r.brain.L + "% Dir=" + r.brain.R + "% | QP=" + r.qp.score + "/100 | " +
+    "Sabotadores principais: " + sabTop + "\n\n" +
+    "Parágrafo 1: Síntese de quem é essa pessoa — correlacione DISC + temperamento + cérebro em 2-3 frases que a pessoa reconheça como verdadeiro sobre si mesma.\n" +
+    "Parágrafo 2: Como isso se manifesta no dia a dia — pontos fortes e padrões de atenção interligados, sem separar.\n" +
+    "Parágrafo 3: Uma perspectiva de desenvolvimento — o que essa combinação única permite alcançar e o que vale desenvolver. Encerre de forma inspiradora e honesta.\n\n" +
+    "REGRAS: sem títulos, sem bullets, sem asteriscos. Linguagem cálida, direta e respeitosa. Máximo 180 palavras.";
+
+  callGroq(prompt, function(txt) {
+    if (!txt) return;
+    var el = document.getElementById("conclusao-txt");
+    if (el) {
+      el.style.fontStyle = "normal";
+      el.style.color = "var(--text)";
+      var txtp = txt.split("\n\n").join("</p><p style='margin:0 0 10px;font-size:13px;color:var(--text);line-height:1.8'>").split("\n").join("<br>");
+      el.innerHTML = txtp;
+    }
+    // Salvar conclusão no resultado para o PDF
+    r.conclusao = txt;
+    var idx = STATE.results.findIndex(function(x){ return x.id===r.id; });
+    if (idx>=0) STATE.results[idx]=r;
+    saveResults();
+    if (FB_OK&&DB) DB.collection("resultados").doc(String(r.id)).update({conclusao:txt}).catch(function(){});
+  });
+}
+
+function gerarAIAdmin(r) {
+  var key = loadKey() || GROQ;
+  if (!key) return;
+
+  var sabStr = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];})
+    .slice(0,4).map(function(e){return e[0]+"="+e[1]+"%";}).join(", ");
+  var sabTop2 = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];})
+    .slice(0,2).map(function(e){return e[0];}).join(" e ");
+
+  var comentarios = (r.respostas||[])
+    .filter(function(x){ return x.comentario && x.comentario.trim().length > 8; })
+    .slice(0,6)
+    .map(function(x){ return "["+x.fase+"] "+x.letra+" — "+x.comentario.trim().substring(0,180); });
+  var comentStr = comentarios.length > 0
+    ? comentarios.join("\n")
+    : "Participante não adicionou comentários escritos.";
+
+  var dn = DISC_NAMES;
+  var tn = TEMP_NAMES;
+
+  var sabStr = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];}).slice(0,4).map(function(e){return e[0]+"="+e[1]+"%";}).join(", ");
+  var sabTop2 = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join(" e ");
+  var comentarios = (r.respostas||[]).filter(function(x){return x.comentario&&x.comentario.trim().length>8;}).slice(0,6).map(function(x){return "["+x.fase+"] "+x.letra+" — "+x.comentario.trim().substring(0,180);});
+  var comentStr = comentarios.length>0 ? comentarios.join("\n") : "Participante não adicionou comentários escritos.";
+  var dn = DISC_NAMES;
+  var prompt = "Você é um especialista comportamental sênior. Escreva com a precisão de um psicólogo organizacional e a clareza de um coach executivo de alto nível.\n\n" +
+    "REGRAS OBRIGATÓRIAS:\n" +
+    "1. NUNCA repita a mesma informação em seções diferentes\n" +
+    "2. NUNCA mencione o nome do perfil DISC ou sabotador mais de UMA VEZ por seção\n" +
+    "3. Cada seção deve revelar algo NOVO que as outras não disseram\n" +
+    "4. Correlacione os instrumentos em frases únicas — ex: 'O D alto somado ao sabotador Juiz cria X'\n" +
+    "5. Escreva em linguagem fluida, sem bullet points com asteriscos\n" +
+    "6. Seja ESPECÍFICO: cite números quando relevante (D=" + r.disc.D + "%, QP=" + r.qp.score + ")\n" +
+    "7. COMPLETE todas as seções inteiramente — especialmente as 3 recomendações\n\n" +
+    "PERFIL:\n" +
+    "Nome: " + r.name + " | Cargo: " + (r.role||"—") + " | Empresa: " + (r.co||"—") + "\n" +
+    "DISC: D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C + "% | Dominante: " + r.discDom + "\n" +
+    "Temperamento: Colérico=" + r.temp.Co + "% Sanguíneo=" + r.temp.Sa + "% Fleumático=" + r.temp.Fl + "% Melancólico=" + r.temp.Me + "%\n" +
+    "Dominância Cerebral: Esquerdo=" + r.brain.L + "% Direito=" + r.brain.R + "%\n" +
+    "QP: " + r.qp.score + "/100\n" +
+    "Sabotadores: " + sabStr + "\n\n" +
+    "RESPOSTAS ESCRITAS DO PARTICIPANTE:\n" + comentStr + "\n\n" +
+    "ESTRUTURA OBRIGATÓRIA — escreva cada seção em parágrafos corridos, sem bullets:\n\n" +
+    "🧠 SÍNTESE DO PERFIL\n" +
+    "2-3 frases. Correlacione DISC+temperamento+cérebro num padrão único e coerente.\n\n" +
+    "💪 FORÇAS REAIS\n" +
+    "3 forças específicas desta combinação. Para cada uma, cite o mecanismo em 1 frase.\n\n" +
+    "⚠️ ZONAS DE ATENÇÃO\n" +
+    "Como " + sabTop2 + " amplificam vulnerabilidades do perfil " + r.discDom + ". 2-3 frases com situações reais.\n\n" +
+    "🔥 SOB PRESSÃO\n" +
+    "2 frases: como reage e o que os outros percebem que ela não percebe.\n\n" +
+    "🤝 NOS RELACIONAMENTOS\n" +
+    "2 frases: estilo de comunicação e onde gera atrito sem perceber.\n\n" +
+    "🎯 COMO TRABALHAR COM ESSA PESSOA\n" +
+    "3 recomendações práticas numeradas (1, 2, 3). Cada uma em 1-2 frases diretas para o consultor aplicar.\n\n" +
+    "💡 SÍNTESE FINAL\n" +
+    "2-3 frases conectando todos os instrumentos. O padrão único desta pessoa.\n\n" +
+    "REGRA CRÍTICA: Complete TODAS as 7 seções. Especialmente a seção 🎯 e a 💡 devem ser escritas INTEIRAMENTE antes de encerrar. " +
+    "Máximo 500 palavras no total — seja direto e preciso em cada seção. Sem asteriscos, sem bullets, sem markdown.";
+
+  callGroq(prompt, function(txt) {
+    if (!txt) return;
+    r.adminAI = txt;
+    // Atualizar no Firebase e local
+    var idx = STATE.results.findIndex(function(x){ return x.id === r.id; });
+    if (idx >= 0) STATE.results[idx] = r; else STATE.results.push(r);
+    saveResults();
+    if (FB_OK && DB) {
+      DB.collection("resultados").doc(String(r.id)).update({adminAI: txt}).catch(function(){
+        saveToFirebase(r, 0);
+      });
+    }
+  });
+}
+
+function callGroq(prompt, cb) {
+  var done = false;
+  var timeout = setTimeout(function(){
+    if (!done){ done=true; cb(null); }
+  }, 45000);
+
+  function finish(result) {
+    if (done) return;
+    done = true;
+    clearTimeout(timeout);
+    cb(result);
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // 1ª TENTATIVA: Vercel Serverless Function (chave no servidor)
+  // O cliente nunca vê a chave — fica em env var no Vercel
+  // ═══════════════════════════════════════════════════════════════
+  fetch("/api/ai", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: prompt })
+  })
+  .then(function(res){
+    return res.json().then(function(data){ return {status:res.status, data:data}; });
+  })
+  .then(function(r){
+    if (done) return;
+    if (r.status === 200 && r.data && r.data.text) {
+      console.log("[Vizzio AI] ✅ Resposta via /api/ai (servidor Vercel)");
+      finish(r.data.text);
+      return;
+    }
+    console.warn("[Vizzio AI] /api/ai falhou (status "+r.status+"):", r.data && r.data.error);
+    tentarChaveLocal(prompt, finish);
+  })
+  .catch(function(err){
+    if (done) return;
+    console.warn("[Vizzio AI] /api/ai não acessível:", err.message, "— tentando chave local");
+    tentarChaveLocal(prompt, finish);
+  });
+}
+
+// Fallback: usa chave salva no localStorage (backup do super admin)
+function tentarChaveLocal(prompt, finish) {
+  var key = loadKey();
+  if (!key || key.trim().length < 20) {
+    console.warn("[Vizzio AI] Nenhuma chave local. Tamanho:", key ? key.length : 0);
+    finish("__NO_KEY__");
+    return;
+  }
+
+  console.log("[Vizzio AI] Tentando chave local tipo:", key.indexOf("sk-ant")===0?"Claude":key.indexOf("gsk_")===0?"Groq":"Desconhecido");
+
+  if (key.indexOf("sk-ant") === 0) {
+    // Chave Claude/Anthropic direto do navegador
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1800,
+        messages: [{ role: "user", content: prompt }]
+      })
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if (data && data.error) {
+        console.error("[Vizzio AI] Claude retornou erro:", data.error);
+      }
+      var txt = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : null;
+      finish(txt);
+    })
+    .catch(function(err){
+      console.error("[Vizzio AI] Erro de rede Claude:", err);
+      finish(null);
+    });
+
+  } else {
+    // Chave Groq
+    fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST", mode: "cors",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile", max_tokens: 1800, temperature: 0.7,
+        messages: [{ role: "user", content: prompt }]
+      })
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(data){
+      if (data && data.error) {
+        console.error("[Vizzio AI] Groq retornou erro:", data.error);
+      }
+      var txt = (data.choices && data.choices[0] && data.choices[0].message) ? data.choices[0].message.content : null;
+      finish(txt);
+    })
+    .catch(function(err){
+      console.error("[Vizzio AI] Erro de rede Groq:", err);
+      finish(null);
+    });
+  }
+}
+
+
+function login() {
+  var u = document.getElementById("lUser").value.trim().toLowerCase();
+  var p = document.getElementById("lPass").value.trim();
+
+  // ── 🔧 SUPER ADMIN (Alexandre / Tríade Resultados) ──
+  if (u === "amorim" && p === "triade2025") {
+    document.getElementById("lErr").style.display = "none";
+    STATE.isSuperAdmin = true;
+    try { sessionStorage.setItem("vz_role","super"); } catch(e){}
+    aplicarNivelAcesso();
+    showPage("pgAdmin");
+    var k = loadKey();
+    if (k && document.getElementById("cfgKey")) document.getElementById("cfgKey").value = k;
+    atualizarStatusChave();
+    loadResults();
+    renderStats();
+    renderResults();
+    setTimeout(function(){
+      loadFromFirebase(function(){ renderStats(); renderResults(); });
+    }, 300);
+    return;
+  }
+
+  // ── 👤 ADMIN CLIENTE (Vizzio Training) ──
+  if (u === "vizzio" && p === "vizzio2025") {
+    document.getElementById("lErr").style.display = "none";
+    STATE.isSuperAdmin = false;
+    try { sessionStorage.setItem("vz_role","client"); } catch(e){}
+    aplicarNivelAcesso();
+    showPage("pgAdmin");
+    loadResults();
+    renderStats();
+    renderResults();
+    setTimeout(function(){
+      loadFromFirebase(function(){ renderStats(); renderResults(); });
+    }, 300);
+    return;
+  }
+
+  document.getElementById("lErr").style.display = "block";
+}
+
+// Mostra ou esconde o painel técnico (chave manual) baseado no nível de acesso
+function aplicarNivelAcesso() {
+  var keyField = document.getElementById("superAdminKeyField");
+  var keyButtons = document.getElementById("superAdminButtons");
+  if (keyField) keyField.style.display = STATE.isSuperAdmin ? "block" : "none";
+  if (keyButtons) keyButtons.style.display = STATE.isSuperAdmin ? "flex" : "none";
+
+  var roleTag = document.getElementById("roleTag");
+  if (roleTag) {
+    if (STATE.isSuperAdmin) {
+      roleTag.textContent = "🔧 SUPER ADMIN";
+      roleTag.style.color = "#FCD34D";
+      roleTag.style.borderColor = "rgba(245,158,11,.4)";
+      roleTag.style.background = "rgba(245,158,11,.08)";
+    } else {
+      roleTag.textContent = "👤 ADMIN VIZZIO";
+      roleTag.style.color = "var(--teal)";
+      roleTag.style.borderColor = "rgba(0,212,200,.4)";
+      roleTag.style.background = "rgba(0,212,200,.06)";
+    }
+    roleTag.style.display = "inline-block";
+  }
+}
+
+function logout() {
+  STATE.isSuperAdmin = false;
+  try { sessionStorage.removeItem("vz_role"); } catch(e){}
+  showPage("pgLogin");
+}
+
+function refreshRes() {
+  toast("Sincronizando...");
+  flushPending();
+  setTimeout(function(){
+    loadFromFirebase(function(){ renderStats(); renderResults(); toast("Atualizado! " + STATE.results.length + " resultado(s)"); });
+  }, 800);
+}
+
+function renderStats() {
+  var done = (STATE.results||[]).filter(function(r){return r.status==="done";}).length;
+  var pend = (STATE.results||[]).filter(function(r){return r.status!=="done";}).length;
+  var pf = {D:0,I:0,S:0,C:0};
+  (STATE.results||[]).forEach(function(r){ if(r.discDom) pf[r.discDom]++; });
+  var top = Object.keys(pf).sort(function(a,b){return pf[b]-pf[a];})[0];
+  var g = document.getElementById("statsGrid");
+  if (!g) return;
+  g.innerHTML =
+    sc((STATE.results||[]).length, "Links Enviados") +
+    sc(done, "Concluídos") +
+    sc(pend, "Pendentes") +
+    sc(top && pf[top] ? top + " (" + pf[top] + ")" : "—", "Perfil Frequente");
+}
+function sc(v,l){ return '<div class="sc"><div class="sc-val">'+v+'</div><div class="sc-lbl">'+l+'</div></div>'; }
+
+function renderResults() {
+  var tb = document.getElementById("resTbody");
+  if (!tb) return;
+  var results = STATE.results || [];
+  if (!results.length) {
+    tb.innerHTML = '<tr><td colspan="6" style="color:var(--subtle);text-align:center;padding:24px">Nenhum resultado ainda. Gere um link e envie ao participante.</td></tr>';
+    return;
+  }
+  var dn = DISC_NAMES;
+  var h = "";
+  results.forEach(function(r, i) {
+    var chip = r.discDom ? '<span class="chip c'+r.discDom+'">'+r.discDom+' — '+(dn[r.discDom]||"")+'</span>' : "—";
+    var status = r.status === "done"
+      ? '<span class="s-done">✓ Concluído</span>'
+      : '<span class="s-pend">⏳ Pendente</span>';
+    h += '<tr>';
+    h += '<td style="font-weight:600">' + (r.name||"—") + '</td>';
+    h += '<td>' + (r.co||"—") + '</td>';
+    h += '<td>' + (r.role||"—") + '</td>';
+    h += '<td>' + chip + '</td>';
+    h += '<td>' + status + '</td>';
+    h += '<td><button class="abtn" onclick="viewResult('+i+')">Ver</button>' +
+         '<button class="abtn abtn-del" onclick="deleteResult('+i+')">Excluir</button></td>';
+    h += '</tr>';
+  });
+  tb.innerHTML = h;
+}
+
+function viewResult(i) {
+  var r = STATE.results[i];
+  if (!r || r.status !== "done") { toast("Resultado não disponível."); return; }
+  document.getElementById("mtitle").textContent = r.name + " — Perfil Comportamental";
+  document.getElementById("mtitle").setAttribute("data-idx", i);
+  STATE._printResult = r;
+  document.getElementById("mbody").innerHTML = buildAdminView(r, i);
+  document.getElementById("overlay").classList.add("open");
+  setTimeout(function(){ animateBars(); }, 200);
+  // Sempre gerar se não tiver adminAI válida (vazia ou ausente)
+  if (!r.adminAI || r.adminAI.trim().length < 50) {
+    setTimeout(function(){ _gerarEMostrar(i); }, 600);
+  }
+}
+
+function _gerarEMostrar(i) {
+  var r = STATE.results[i];
+  if (!r) return;
+
+  // Mostrar loading no box
+  var box = document.getElementById("ainterp_" + i);
+  if (box) {
+    box.innerHTML =
+      '<div class="ibox">' +
+      '<div class="ibox-hdr"><div style="font-size:20px">🧠</div>' +
+      '<div><div style="font-weight:700;color:var(--teal);font-size:14px">Análise Interpretativa</div>' +
+      '<div style="font-size:11px;color:var(--muted)">Gerando com IA — aguarde...</div></div></div>' +
+      '<div id="ainterp_load_'+i+'" style="text-align:center;padding:20px;color:var(--muted);font-size:13px">' +
+      '<div class="spinner" style="width:28px;height:28px;margin:0 auto 10px"></div>Analisando perfil...</div>' +
+      '</div>';
+  }
+
+  // Construir prompt direto aqui para não depender de função externa
+  var sabStr = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
+    .slice(0,4).map(function(e){return e[0]+"="+e[1]+"%";}).join(", ");
+  var sabTop2 = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
+    .slice(0,2).map(function(e){return e[0];}).join(" e ");
+  var dn = {D:"Dominante",I:"Influente",S:"Estável",C:"Criterioso"};
+  var tn = {Co:"Colérico",Sa:"Sanguíneo",Fl:"Fleumático",Me:"Melancólico"};
+
+  var comentarios = (r.respostas||[])
+    .filter(function(x){return x.comentario && x.comentario.trim().length > 8;})
+    .slice(0,5)
+    .map(function(x){return "["+x.fase+"] "+x.letra+" — "+x.comentario.trim().substring(0,150);});
+  var comentStr = comentarios.length > 0 ? comentarios.join("\n") : "Sem comentários adicionais.";
+
+  var prompt =
+    "Você é um especialista comportamental sênior. Escreva com a precisão de um psicólogo organizacional e a clareza de um coach executivo experiente.\n\n" +
+    "REGRAS:\n" +
+    "1. Nunca repita a mesma informação em seções diferentes\n" +
+    "2. Cada seção revela algo novo e específico\n" +
+    "3. Correlacione os instrumentos — nunca descreva cada um isoladamente\n" +
+    "4. Sem asteriscos, sem bullets, sem markdown — texto corrido\n" +
+    "5. Complete TODAS as seções inteiramente, especialmente 🎯 e 💡\n\n" +
+    "PERFIL:\n" +
+    "Nome: " + r.name + " | Cargo: " + (r.role||"—") + " | Empresa: " + (r.co||"—") + "\n" +
+    "DISC: D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C + "% | Dominante: " + r.discDom + " (" + (dn[r.discDom]||r.discDom) + ")\n" +
+    "Temperamento: Colérico=" + r.temp.Co + "% Sanguíneo=" + r.temp.Sa + "% Fleumático=" + r.temp.Fl + "% Melancólico=" + r.temp.Me + "%\n" +
+    "Dominância Cerebral: Esquerdo=" + r.brain.L + "% Direito=" + r.brain.R + "%\n" +
+    "QP: " + r.qp.score + "/100 | Sabotadores: " + sabStr + "\n\n" +
+    "RESPOSTAS DO PARTICIPANTE:\n" + comentStr + "\n\n" +
+    "ESTRUTURA:\n" +
+    "🧠 SÍNTESE DO PERFIL\n2-3 frases correlacionando DISC+temperamento+cérebro.\n\n" +
+    "💪 FORÇAS REAIS\n3 forças específicas desta combinação com o mecanismo de cada uma.\n\n" +
+    "⚠️ ZONAS DE ATENÇÃO\nComo " + sabTop2 + " amplificam vulnerabilidades do perfil " + r.discDom + ". Situações reais.\n\n" +
+    "🔥 SOB PRESSÃO\nComo reage, o que os outros percebem, o que ela não percebe.\n\n" +
+    "🤝 NOS RELACIONAMENTOS\nEstilo de comunicação, liderança, onde gera atrito sem perceber.\n\n" +
+    "🎯 COMO TRABALHAR COM ESSA PESSOA\n3 recomendações numeradas (1, 2, 3). Cada uma completa em 2-3 frases.\n\n" +
+    "💡 SÍNTESE FINAL\n2-3 frases conectando tudo. O padrão único desta pessoa.\n\n" +
+    "Máximo 550 palavras. Complete TODAS as seções.";
+
+  // Chamar IA e atualizar box diretamente
+  callGroq(prompt, function(txt) {
+
+    if (txt === "__NO_KEY__") {
+      var box2 = document.getElementById("ainterp_" + i);
+      if (!box2) return;
+      if (STATE.isSuperAdmin) {
+        // SUPER ADMIN: mostra input de chave manual + instruções
+        box2.innerHTML =
+          '<div class="ibox" style="padding:18px">' +
+          '<div style="color:var(--amber);font-size:14px;font-weight:700;margin-bottom:8px">⚙️ IA não respondeu</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.7">' +
+          'O servidor (/api/ai) não respondeu. Verifique se a variável <code>ANTHROPIC_API_KEY</code> está configurada no Vercel, OU cole uma chave manual aqui como backup:' +
+          '</div>' +
+          '<div style="background:var(--card);border:1px solid var(--teal);border-radius:8px;padding:14px;margin-bottom:14px">' +
+          '<div style="font-size:12px;color:var(--teal);font-weight:700;margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase">🔑 Chave de backup (manual):</div>' +
+          '<input id="quickKey_'+i+'" placeholder="sk-ant-... ou gsk_..." style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--text);outline:none;font-family:monospace" oninput="document.getElementById(\'quickKeyMsg_'+i+'\').textContent=\'\'">' +
+          '<div id="quickKeyMsg_'+i+'" style="font-size:12px;color:var(--muted);margin-top:6px;min-height:16px"></div>' +
+          '<div style="display:flex;gap:8px;margin-top:8px">' +
+          '<button class="btn-sm btn-teal" style="font-weight:700" onclick="salvarChaveERegenerar('+i+')">💾 Salvar e gerar análise</button>' +
+          '</div></div>' +
+          '<div style="font-size:12px;color:var(--muted);line-height:1.7">' +
+          '<b style="color:var(--text)">Configurar no Vercel (ideal):</b> Dashboard Vercel → Settings → Environment Variables → adicione <code>ANTHROPIC_API_KEY</code> com o valor da chave.' +
+          '</div></div>';
+      } else {
+        // CLIENTE VIZZIO: mensagem simples sem detalhes técnicos
+        box2.innerHTML =
+          '<div class="ibox" style="padding:18px">' +
+          '<div style="color:var(--amber);font-size:14px;font-weight:700;margin-bottom:10px">⚠️ Análise temporariamente indisponível</div>' +
+          '<div style="font-size:13px;color:var(--muted);line-height:1.8">' +
+          'O serviço de Inteligência Artificial não está respondendo no momento. Os gráficos e dados acima já estão completos e podem ser salvos em PDF.<br><br>' +
+          'Para gerar a análise interpretativa, entre em contato com o suporte técnico:<br>' +
+          '<b style="color:var(--text)">Tríade Resultados — Alexandre Amorim</b>' +
+          '</div></div>';
+      }
+      return;
+    }
+    if (!txt || txt.trim().length < 50) {
+      var box2 = document.getElementById("ainterp_" + i);
+      if (box2) box2.innerHTML =
+        '<div class="ibox"><div style="color:var(--amber);padding:14px;font-size:13px">' +
+        '⚠️ A IA não retornou resposta. Verifique se a chave está correta e tente novamente.' +
+        '</div></div>';
+      return;
+    }
+    // Salvar
+    var aidx = STATE.results.findIndex(function(x){ return x.id === r.id; });
+    if (aidx >= 0) STATE.results[aidx].adminAI = txt;
+    if (STATE._printResult && STATE._printResult.id === r.id) STATE._printResult.adminAI = txt;
+    saveResults();
+    if (FB_OK && DB) DB.collection("resultados").doc(String(r.id)).update({adminAI:txt}).catch(function(){});
+    // Mostrar direto no box — sem polling
+    var box3 = document.getElementById("ainterp_" + i);
+    if (box3) { box3.innerHTML = renderAdminAI(txt); animateBars(); }
+  });
+}
+
+function buildAdminView(r, i) {
+  var dn = DISC_NAMES;
+  var tn = TEMP_NAMES;
+  var DISC_COLORS = {D:"#F87171",I:"#FCD34D",S:"#4ADE80",C:"#60A5FA"};
+  var TEMP_COLORS = {Co:"#EF4444",Sa:"#F59E0B",Fl:"#22C55E",Me:"#3B82F6"};
+  var sabNames = {Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+
+  var h = '';
+  h += '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px">';
+  h += '<div style="font-size:18px;font-weight:800;margin-bottom:4px">' + r.name + '</div>';
+  h += '<div style="font-size:13px;color:var(--muted)">' + (r.role||"") + (r.co?" · "+r.co:"") + '</div>';
+  h += '</div>';
+
+  // DISC
+  h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🎯 DISC</div>';
+  h += '<div class="disc4">';
+  ["D","I","S","C"].forEach(function(k){
+    var isL = k === r.discDom;
+    h += '<div class="di'+(isL?' lead':'')+'"><div class="di-l" style="color:'+DISC_COLORS[k]+'">'+k+'</div><div class="di-p">'+r.disc[k]+'%</div><div class="di-n">'+dn[k]+'</div></div>';
+  });
+  h += '</div></div>';
+
+  // Temp + Brain + QP
+  h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🌡️ Temperamento · 🧠 Cérebro · ✨ QP</div>';
+  Object.keys(tn).forEach(function(k){
+    var pct = r.temp[k];
+    h += '<div class="bar-item"><div class="bar-top"><span>'+tn[k]+'</span><span>'+pct+'%</span></div>';
+    h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+pct+'" style="width:0%;background:'+TEMP_COLORS[k]+'"></div></div></div>';
+  });
+  [{k:"L",n:"Esquerdo",c:"#3B82F6"},{k:"R",n:"Direito",c:"#8B5CF6"}].forEach(function(x){
+    h += '<div class="bar-item"><div class="bar-top"><span>Cérebro '+x.n+'</span><span>'+r.brain[x.k]+'%</span></div>';
+    h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+r.brain[x.k]+'" style="width:0%;background:'+x.c+'"></div></div></div>';
+  });
+  var qc = r.qp.score>=70?"#22C55E":r.qp.score>=45?"#F59E0B":"#EF4444";
+  h += '<div class="bar-item"><div class="bar-top"><span>QP (Inteligência Positiva)</span><span style="color:'+qc+'">'+r.qp.score+'/100</span></div>';
+  h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+r.qp.score+'" style="width:0%;background:'+qc+'"></div></div></div>';
+  h += '</div>';
+
+  // Sabotadores
+  h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">⚡ Sabotadores</div>';
+  Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+    h += '<div class="sab-row"><div class="sab-lbl">'+(sabNames[e[0]]||e[0])+'</div>';
+    h += '<div class="sab-bg"><div class="sab-fill" data-pct="'+e[1]+'" style="width:0%"></div></div>';
+    h += '<div class="sab-num">'+e[1]+'</div></div>';
+  });
+  h += '</div>';
+
+  // Interpretação IA
+  h += '<div id="ainterp_'+i+'">';
+  if (r.adminAI) {
+    h += renderAdminAI(r.adminAI);
+  } else {
+    h += '<div class="ibox"><div class="ibox-hdr"><div style="font-size:20px">🧠</div>';
+    h += '<div><div style="font-weight:700;color:var(--teal);font-size:14px">Análise Interpretativa</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Exclusivo para o consultor</div></div></div>';
+    h += '<button class="btn" style="width:100%" onclick="gerarInterpAdmin('+i+')">Gerar interpretação →</button>';
+    h += '<div id="ainterpLoad_'+i+'" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px">Gerando análise com IA...</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function renderAdminAI(txt) {
+  // Remover asteriscos markdown
+  var cleaned = txt
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/^\s*[•\-\*]\s+/gm, '');
+
+  var lines = cleaned.split("\n");
+  var EMOJIS = ["🧠","💪","⚠️","🔥","🤝","🎯","🌱","📋","⚡"];
+  var out = '<div class="ibox"><div class="ibox-hdr"><div style="font-size:22px">🧠</div>';
+  out += '<div><div style="font-weight:700;color:var(--teal);font-size:14px">Análise Interpretativa — Uso Exclusivo do Consultor</div>';
+  out += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Gerada por IA · Correlação cruzada de todos os instrumentos</div></div></div>';
+  lines.forEach(function(ln){
+    var trimmed = ln.trim();
+    if (!trimmed) return;
+    var isHeader = EMOJIS.some(function(e){ return trimmed.indexOf(e) === 0; });
+    if (isHeader) {
+      out += '<div class="isec">'+trimmed+'</div>';
+    } else if (/^[123]\.\s/.test(trimmed)) {
+      // Recomendação numerada — destaque especial
+      out += '<div class="ip" style="background:rgba(0,212,200,.04);border-left:2px solid var(--teal);padding:6px 10px;border-radius:0 6px 6px 0;margin-bottom:6px">'+trimmed+'</div>';
+    } else {
+      out += '<div class="ip">'+trimmed+'</div>';
+    }
+  });
+  out += '</div>';
+  return out;
+}
+
+function gerarInterpAdmin(i) {
+  var r = STATE.results[i];
+  if (!r) return;
+  var btn = document.querySelector("#ainterp_"+i+" .btn");
+  var load = document.getElementById("ainterpLoad_"+i);
+  if (btn) btn.style.display = "none";
+  if (load) load.style.display = "block";
+
+  gerarAIAdmin(r);
+
+  // Polling para mostrar quando pronto
+  var checks = 0;
+  var interval = setInterval(function(){
+    checks++;
+    var updated = STATE.results[i];
+    if (updated && updated.adminAI) {
+      clearInterval(interval);
+      var box = document.getElementById("ainterp_"+i);
+      if (box) { box.innerHTML = renderAdminAI(updated.adminAI); animateBars(); }
+    }
+    if (checks > 30) clearInterval(interval); // 30s max
+  }, 1000);
+}
+
+function deleteResult(i) {
+  var r = STATE.results[i];
+  if (!r) return;
+  if (!confirm("Excluir o resultado de " + (r.name||"este participante") + "? Esta ação não pode ser desfeita.")) return;
+  if (FB_OK && DB) DB.collection("resultados").doc(String(r.id)).delete().catch(function(){});
+  STATE.results.splice(i, 1);
+  saveResults();
+  renderResults();
+  renderStats();
+  toast("Resultado excluído.");
+}
+
+function closeModal() {
+  document.getElementById("overlay").classList.remove("open");
+}
+
+function printAdminPDF() {
+  // Gerar HTML do relatório admin em nova janela para impressão
+  var i = parseInt(document.getElementById("mtitle").getAttribute("data-idx") || "0");
+  var r = STATE.results.find(function(x){ return x._printIdx === i; }) || STATE._printResult;
+  if (!r) { toast("Resultado não disponível."); return; }
+  _openAdminPrint(r);
+}
+
+function _openAdminPrint(r) {
+  var dn = DISC_NAMES;
+  var tn = TEMP_NAMES;
+  var DISC_COLORS = {D:"#F87171",I:"#FCD34D",S:"#4ADE80",C:"#60A5FA"};
+  var TEMP_COLORS = {Co:"#EF4444",Sa:"#F59E0B",Fl:"#22C55E",Me:"#3B82F6"};
+  var sabNames = {Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+
+  var sabEntries = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];});
+
+  // Formatar interpretação sem markdown
+  var interpHtml = "";
+  if (r.adminAI) {
+    var EMOJIS = ["🧠","💪","⚠️","🔥","🤝","🎯","🌱","📋","⚡"];
+    var cleaned = r.adminAI.replace(/\*\*([^*]+)\*\*/g,"$1").replace(/\*([^*]+)\*/g,"$1");
+    var lines = cleaned.split("\n");
+    lines.forEach(function(ln){
+      var t = ln.trim();
+      if (!t) return;
+      var isH = EMOJIS.some(function(e){ return t.indexOf(e)===0; });
+      if (isH) {
+        interpHtml += '<h3 style="color:#0d9488;font-size:13px;font-weight:700;margin:14px 0 5px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">'+t+'</h3>';
+      } else if (/^[123]\.\s/.test(t)) {
+        interpHtml += '<p style="margin:0 0 6px;font-size:12px;background:#f0fffe;border-left:3px solid #0d9488;padding:5px 8px;border-radius:0 4px 4px 0">'+t+'</p>';
+      } else {
+        interpHtml += '<p style="margin:0 0 6px;font-size:12px;color:#374151;line-height:1.7">'+t+'</p>';
+      }
+    });
+  } else {
+    interpHtml = '<p style="color:#9ca3af;font-style:italic">Interpretação não gerada ainda. Feche este modal, clique em Ver e aguarde a geração automática.</p>';
+  }
+
+  var barsHtml = "";
+  // Temperamento
+  Object.keys(tn).forEach(function(k){
+    var pct = r.temp[k]||0;
+    barsHtml += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>'+tn[k]+'</span><span>'+pct+'%</span></div>';
+    barsHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+TEMP_COLORS[k]+';border-radius:99px"></div></div></div>';
+  });
+  // Cérebro
+  [{k:"L",n:"Esquerdo (Analítico)",c:"#3B82F6"},{k:"R",n:"Direito (Criativo)",c:"#8B5CF6"}].forEach(function(x){
+    var pct=r.brain[x.k]||0;
+    barsHtml += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>'+x.n+'</span><span>'+pct+'%</span></div>';
+    barsHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+x.c+';border-radius:99px"></div></div></div>';
+  });
+  // QP
+  var qpColor = r.qp.score>=70?"#22C55E":r.qp.score>=45?"#F59E0B":"#EF4444";
+  barsHtml += '<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>QP — Inteligência Positiva</span><span style="color:'+qpColor+';font-weight:700">'+r.qp.score+'/100</span></div>';
+  barsHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+r.qp.score+'%;background:'+qpColor+';border-radius:99px"></div></div></div>';
+
+  var discHtml = ["D","I","S","C"].map(function(k){
+    var isL = k===r.discDom;
+    return '<div style="text-align:center;padding:10px 6px;border-radius:8px;background:'+(isL?"#f0fffe":"#f9fafb")+';border:1px solid '+(isL?"#0d9488":"#e5e7eb")+'">' +
+      '<div style="font-size:20px;font-weight:900;color:'+DISC_COLORS[k]+'">'+k+'</div>' +
+      '<div style="font-size:13px;font-weight:700;color:#0d9488;margin-top:2px">'+r.disc[k]+'%</div>' +
+      '<div style="font-size:9px;color:#9ca3af;margin-top:1px">'+dn[k]+'</div>' +
+    '</div>';
+  }).join("");
+
+  var sabHtml = sabEntries.map(function(e){
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">' +
+      '<div style="font-size:11px;color:#374151;width:110px;flex-shrink:0">'+(sabNames[e[0]]||e[0])+'</div>' +
+      '<div style="flex:1;height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+e[1]+'%;background:linear-gradient(90deg,#F59E0B,#EF4444);border-radius:99px"></div></div>' +
+      '<div style="font-size:10px;color:#9ca3af;width:28px;text-align:right">'+e[1]+'</div>' +
+    '</div>';
+  }).join("");
+
+  var dateStr = new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+
+  var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">' +
+    '<title>Relatório — '+r.name+'</title>' +
+    '<style>' +
+    '@page{margin:10mm 12mm;size:A4}' +
+    'body{font-family:Arial,sans-serif;background:#fff;color:#111;margin:0;padding:0;font-size:12px}' +
+    '.header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 12px;border-bottom:2px solid #00D4C8;margin-bottom:14px}' +
+    '.logo-bar{width:4px;height:32px;background:#00D4C8;border-radius:2px;display:inline-block;margin-right:10px;vertical-align:middle}' +
+    '.logo-name{font-size:20px;font-weight:900;letter-spacing:2px;color:#111;vertical-align:middle}' +
+    '.logo-tag{font-size:9px;font-weight:700;letter-spacing:4px;color:#00D4C8;display:block;margin-left:14px}' +
+    '.hero{background:#f0fffe;border-radius:10px;padding:16px 20px;margin-bottom:14px;border:1px solid #a7f3d0}' +
+    '.hero-name{font-size:20px;font-weight:800;margin-bottom:4px}' +
+    '.hero-meta{font-size:12px;color:#6b7280}' +
+    '.hero-badge{display:inline-block;margin-top:8px;padding:4px 14px;border-radius:99px;font-size:11px;font-weight:700;border:1.5px solid #0d9488;color:#0d9488}' +
+    '.section{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:10px;break-inside:avoid}' +
+    '.section-title{font-size:10px;font-weight:700;color:#0d9488;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}' +
+    '.disc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:4px}' +
+    '.label-uso{font-size:10px;color:#9ca3af;text-align:right;margin-top:8px;font-style:italic}' +
+    '.footer{display:flex;justify-content:space-between;margin-top:16px;padding-top:8px;border-top:1px solid #00D4C8;font-size:9px;color:#9ca3af}' +
+    '</style></head><body>' +
+    '<div class="header">' +
+    '<div><span class="logo-bar"></span><span class="logo-name">VIZZIO</span><span class="logo-tag">TRAINING</span></div>' +
+    '<div style="text-align:right;font-size:11px;color:#6b7280">Relatório Comportamental — Uso do Consultor<br><span style="color:#0d9488;font-weight:700">Análise Interpretativa Integrada</span><br>'+dateStr+'</div>' +
+    '</div>' +
+    '<div class="hero">' +
+    '<div class="hero-name">'+r.name+'</div>' +
+    '<div class="hero-meta">'+(r.role||"")+(r.co?" · "+r.co:"")+'</div>' +
+    '<span class="hero-badge">Perfil '+r.discDom+' — '+dn[r.discDom]+'</span>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
+    '<div class="section"><div class="section-title">🎯 Perfil DISC</div><div class="disc-grid">'+discHtml+'</div></div>' +
+    '<div class="section"><div class="section-title">⚡ Sabotadores</div>'+sabHtml+'</div>' +
+    '</div>' +
+    '<div class="section"><div class="section-title">🌡️ Temperamento · 🧠 Dominância Cerebral · ✨ QP</div>'+barsHtml+'</div>' +
+    '<div class="section"><div class="section-title">🧠 Análise Interpretativa — Uso Exclusivo do Consultor</div>' +
+    '<div class="label-uso">Gerada por IA · Correlação cruzada de todos os instrumentos</div>' +
+    interpHtml+'</div>' +
+    '<div class="footer">' +
+    '<div>Vizzio Training · vizziotraining.com.br</div>' +
+    '<div>Desenvolvido por Tríade Resultados · Alexandre Amorim</div>' +
+    '</div>' +
+    '</body></html>';
+
+  var win = window.open("","_blank","width=900,height=700");
+  win.document.write(html);
+  win.document.close();
+  win.onload = function(){ win.print(); };
+}
+
+function salvarChaveERegenerar(i) {
+  var inp = document.getElementById("quickKey_"+i);
+  var msg = document.getElementById("quickKeyMsg_"+i);
+  if (!inp) return;
+  var raw = inp.value;
+  var k = saveKey(raw);
+  inp.value = k;
+  if (!k || k.length < 30) {
+    msg.textContent = "⚠️ Cole uma chave completa antes de salvar.";
+    msg.style.color = "#FCD34D";
+    return;
+  }
+  if (k.indexOf("sk-ant")!==0 && k.indexOf("gsk_")!==0) {
+    msg.textContent = "⚠️ A chave deve começar com sk-ant ou gsk_.";
+    msg.style.color = "#F87171";
+    return;
+  }
+  // Atualizar também o campo do painel admin
+  var cfgKey = document.getElementById("cfgKey");
+  if (cfgKey) cfgKey.value = k;
+  atualizarStatusChave();
+  msg.textContent = "✅ Chave salva! Gerando análise...";
+  msg.style.color = "#4ADE80";
+  // Disparar a geração de novo após pequeno delay
+  setTimeout(function(){ _gerarEMostrar(i); }, 500);
+}
+
+function salvarChaveIA() {
+  var raw = document.getElementById("cfgKey").value;
+  var k = saveKey(raw); // saveKey já faz trim e retorna o valor limpo
+  document.getElementById("cfgKey").value = k; // mostra a chave limpa no campo
+  if (!k || k.length < 30) {
+    toast("⚠️ Cole uma chave válida (sk-ant... ou gsk_...) antes de salvar.");
+    atualizarStatusChave();
+    return;
+  }
+  if (k.indexOf("sk-ant")!==0 && k.indexOf("gsk_")!==0) {
+    toast("⚠️ A chave deve começar com sk-ant (Claude) ou gsk_ (Groq).");
+    atualizarStatusChave();
+    return;
+  }
+  toast("✅ Chave salva! Clique em 🧪 Testar chave para confirmar.");
+  atualizarStatusChave();
+}
+
+function atualizarStatusChave() {
+  var el = document.getElementById("keyStatus");
+  if (!el) return;
+  var k = loadKey();
+  if (!k) {
+    el.style.display = "block";
+    el.style.background = "rgba(245,158,11,.1)";
+    el.style.border = "1px solid rgba(245,158,11,.3)";
+    el.style.color = "#FCD34D";
+    el.innerHTML = "⚠️ Sem chave configurada — cole a chave acima e clique em 💾 Salvar chave.";
+  } else if (k.length < 30) {
+    el.style.display = "block";
+    el.style.background = "rgba(239,68,68,.1)";
+    el.style.border = "1px solid rgba(239,68,68,.3)";
+    el.style.color = "#F87171";
+    el.innerHTML = "❌ Chave com apenas "+k.length+" caracteres — parece incompleta. Cole a chave inteira.";
+  } else if (k.indexOf("sk-ant")!==0 && k.indexOf("gsk_")!==0) {
+    el.style.display = "block";
+    el.style.background = "rgba(239,68,68,.1)";
+    el.style.border = "1px solid rgba(239,68,68,.3)";
+    el.style.color = "#F87171";
+    el.innerHTML = "❌ Formato inválido — chave deve começar com sk-ant ou gsk_.";
+  } else {
+    var tipo = k.indexOf("sk-ant")===0 ? "Claude (Anthropic)" : "Groq (Llama)";
+    el.style.display = "block";
+    el.style.background = "rgba(34,197,94,.08)";
+    el.style.border = "1px solid rgba(34,197,94,.3)";
+    el.style.color = "#4ADE80";
+    el.innerHTML = "✅ Chave configurada — <b>"+tipo+"</b> · "+k.length+" caracteres · final: <code style='background:rgba(255,255,255,.05);padding:1px 5px;border-radius:3px'>..."+k.substring(k.length-6)+"</code>";
+  }
+}
+
+function testarChaveIA() {
+  var k = loadKey();
+  if (!k) { toast("⚠️ Salve a chave primeiro."); return; }
+  toast("🧪 Testando chave... aguarde alguns segundos.");
+  callGroq("Responda apenas com a palavra: OK", function(resp) {
+    if (resp === "__NO_KEY__") {
+      toast("❌ Chave não encontrada no localStorage. Salve novamente.");
+    } else if (!resp) {
+      toast("❌ Chave INVÁLIDA ou expirada. Verifique no console (F12) e gere outra.");
+      console.error("[Vizzio] Teste de chave falhou. Resposta vazia/erro da API.");
+    } else {
+      toast("✅ Chave funcionando! Resposta da IA: "+resp.substring(0,40));
+      console.log("[Vizzio] Teste OK. Resposta:", resp);
+    }
+  });
+}
+
+function genLink() {
+  var name  = document.getElementById("cfgName").value.trim() || "Vizzio Assessment";
+  var co    = document.getElementById("cfgCo").value.trim();
+  var lv    = document.getElementById("cfgLv").value;
+  var key   = document.getElementById("cfgKey").value.trim();
+  if (key) saveKey(key);
+  var base  = location.href.split("?")[0];
+  var url   = base + "?n=" + encodeURIComponent(name) + "&c=" + encodeURIComponent(co) + "&l=" + lv + "&k=" + encodeURIComponent(btoa(key||""));
+  document.getElementById("linkUrl").textContent = url;
+  document.getElementById("linkBox").style.display = "block";
+  // Registrar link enviado
+  var phantom = {id:Date.now(),status:"pendente",name:"—",co:co,role:"—",discDom:null,at:new Date().toISOString()};
+  STATE.results.push(phantom);
+  saveResults();
+  renderStats();
+  renderResults();
+}
+
+function copyLink() {
+  var url = document.getElementById("linkUrl").textContent;
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(function(){ toast("Link copiado!"); });
+  else {
+    var el = document.createElement("textarea"); el.value = url; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el);
+    toast("Link copiado!");
+  }
+}
+
+function sendWhatsApp() {
+  var url   = document.getElementById("linkUrl").textContent;
+  var name  = document.getElementById("cfgName").value.trim() || "Vizzio Assessment";
+  var co    = document.getElementById("cfgCo").value.trim();
+  var msg = "Olá! Você foi convidado(a) para " + name + (co?" — "+co:"") + ". Acesse: " + url + " | Vizzio Training";
+  window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ASSESSMENT — INICIALIZAÇÃO
+// ═══════════════════════════════════════════════════════════════
+function initFromURL() {
+  var p = new URLSearchParams(location.search);
+  if (!p.get("n")) return;
+  STATE.cfg = {
+    name: p.get("n") || "Vizzio Assessment",
+    co:   p.get("c") || "",
+    lv:   p.get("l") || "lider",
+    key:  p.get("k") ? (function(){ try{ return atob(p.get("k")); } catch(e){ return ""; } })() : loadKey()
+  };
+  if (STATE.cfg.key) saveKey(STATE.cfg.key);
+  document.getElementById("aTitle").textContent = STATE.cfg.name;
+  document.getElementById("aSubtitle").textContent = "Bem-vindo ao diagnóstico comportamental" + (STATE.cfg.co ? " · " + STATE.cfg.co : "") + ". Antes de começar, nos diga um pouco sobre você.";
+  showPage("pgAssess");
+}
+
+function startAssessment() {
+  var name  = document.getElementById("pName").value.trim();
+  var role  = document.getElementById("pRole").value.trim();
+  var co    = document.getElementById("pCo").value.trim() || (STATE.cfg ? STATE.cfg.co : "");
+  var phone = document.getElementById("pPhone").value.trim();
+  if (!name) { alert("Por favor, informe seu nome."); return; }
+
+  STATE.part = {name:name, role:role, co:co, phone:phone};
+  STATE.qi = 0;
+  STATE.answers = {};
+  STATE.comments = {};
+  STATE.respostas = [];
+  chatDone = false;
+  chatSending = false;
+
+  document.getElementById("step0").style.display = "none";
+  var stepQ = document.getElementById("stepQ");
+  stepQ.style.display = "flex";
+
+  // Boas-vindas
+  var win = document.getElementById("chatWin");
+  win.innerHTML = "";
+  var primeiroNome = name.split(" ")[0];
+
+  showTyping(function(){
+    addBubble("ai",
+      '<span class="ai-lbl">Vizzio</span>' +
+      'Olá, <strong>' + primeiroNome + '</strong>! 👋 Seja bem-vindo(a) ao seu Assessment Comportamental Vizzio Training.<br><br>' +
+      'Vou conduzir uma conversa para mapear seu perfil comportamental. Serão algumas situações do cotidiano — ' +
+      'responda com o que vier naturalmente. <strong>Não existem respostas certas ou erradas.</strong><br><br>' +
+      'Para cada situação, leia as alternativas e <strong>digite a letra da sua escolha</strong> no campo abaixo. ' +
+      'Se quiser, adicione um comentário — por exemplo: <em>"A — costumo agir assim especialmente sob pressão"</em>. ' +
+      'Pode também dizer que está <em>"entre A e C"</em> se sentir que se encaixa em duas.<br><br>' +
+      'Pronto para começar? 😊'
+    );
+    setTimeout(function(){
+      renderCurrentQuestion();
+    }, 500);
+  }, 600);
+
+  // Enter para enviar
+  var inp = document.getElementById("chatInp");
+  inp.removeEventListener("keydown", inp._handler || function(){});
+  inp._handler = function(e){ if(e.key==="Enter") sendAns(); };
+  inp.addEventListener("keydown", inp._handler);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UTILITÁRIOS
+// ═══════════════════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(function(p){ p.classList.remove("on"); });
+  var el = document.getElementById(id);
+  if (el) el.classList.add("on");
+}
+
+function toast(msg) {
+  var el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  setTimeout(function(){ el.classList.remove("on"); }, 2800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener("DOMContentLoaded", function(){
+  loadResults();
+  initFromURL();
+  setTimeout(function(){
+    try { initFirebase(); } catch(e) { console.warn("Firebase:", e); }
+  }, 150);
+});
+</script>
+</body>
+</html>

@@ -52,6 +52,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .sec{font-size:11px;font-weight:700;color:var(--subtle);letter-spacing:.1em;text-transform:uppercase;margin:20px 0 10px}
 .cfg{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ttype-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.ttype-card{cursor:pointer;position:relative;display:block}
+.ttype-card input{position:absolute;opacity:0;width:0;height:0}
+.ttype-content{padding:14px 10px 12px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;text-align:center;transition:all .2s ease;height:100%}
+.ttype-card:hover .ttype-content{border-color:rgba(0,212,200,.4)}
+.ttype-card input:checked + .ttype-content{border-color:var(--teal);background:rgba(0,212,200,.08);box-shadow:0 0 0 3px rgba(0,212,200,.12)}
+.ttype-emoji{font-size:22px;margin-bottom:4px;opacity:.8}
+.ttype-card input:checked + .ttype-content .ttype-emoji{opacity:1}
+.ttype-title{font-weight:800;font-size:14px;color:var(--text);letter-spacing:.02em}
+.ttype-card input:checked + .ttype-content .ttype-title{color:var(--teal)}
+.ttype-desc{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;font-weight:500}
+.ttype-sub{font-size:10px;color:var(--subtle);margin-top:6px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.chip-test{display:inline-block;font-size:10px;font-weight:700;padding:3px 8px;border-radius:99px;letter-spacing:.05em;margin-left:6px}
+.chip-test.tA{background:rgba(139,92,246,.12);color:#A78BFA;border:1px solid rgba(139,92,246,.3)}
+.chip-test.tB{background:rgba(96,165,250,.12);color:#60A5FA;border:1px solid rgba(96,165,250,.3)}
+.chip-test.tC{background:rgba(74,222,128,.12);color:#4ADE80;border:1px solid rgba(74,222,128,.3)}
+.ned-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.ned-card{padding:14px 12px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;text-align:center;transition:all .25s ease}
+.ned-card.ned-dom{box-shadow:0 0 0 2px rgba(0,212,200,.12);background:rgba(0,212,200,.04)}
+.ned-pct{font-size:26px;font-weight:900;line-height:1;margin-bottom:6px}
+.ned-ttl{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px}
+.ned-desc{font-size:11px;color:var(--muted);line-height:1.4}
+@media print {.ned-grid{break-inside:avoid}.ned-card{break-inside:avoid}}
 .fb-bar{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--muted)}
 .fb-dot{width:9px;height:9px;border-radius:50%;background:var(--subtle);flex-shrink:0}
 .link-wrap{margin-top:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px}
@@ -247,6 +270,38 @@ tr:last-child td{border-bottom:none}
         <div class="field"><label>Nome do Assessment</label><input id="cfgName" value="Vizzio Assessment" placeholder="Nome do assessment"></div>
         <div class="field"><label>Empresa cliente</label><input id="cfgCo" placeholder="Ex: TechCorp Ltda"></div>
       </div>
+      <div class="field" style="margin-top:4px">
+        <label>Tipo de Teste — escolha a combinação que deseja aplicar</label>
+        <div class="ttype-grid">
+          <label class="ttype-card">
+            <input type="radio" name="testType" value="A" checked>
+            <div class="ttype-content">
+              <div class="ttype-emoji">🎯</div>
+              <div class="ttype-title">Teste A</div>
+              <div class="ttype-desc">Sabotadores<br>+ Ned Herrmann</div>
+              <div class="ttype-sub">10 perguntas</div>
+            </div>
+          </label>
+          <label class="ttype-card">
+            <input type="radio" name="testType" value="B">
+            <div class="ttype-content">
+              <div class="ttype-emoji">🎯</div>
+              <div class="ttype-title">Teste B</div>
+              <div class="ttype-desc">Sabotadores<br>+ DISC</div>
+              <div class="ttype-sub">14 perguntas</div>
+            </div>
+          </label>
+          <label class="ttype-card">
+            <input type="radio" name="testType" value="C">
+            <div class="ttype-content">
+              <div class="ttype-emoji">🎯</div>
+              <div class="ttype-title">Teste C</div>
+              <div class="ttype-desc">Sabotadores<br>+ Temperamentos</div>
+              <div class="ttype-sub">10 perguntas</div>
+            </div>
+          </label>
+        </div>
+      </div>
       <div class="row2">
         <div class="field"><label>Nível dos participantes</label>
           <select id="cfgLv">
@@ -274,6 +329,7 @@ tr:last-child td{border-bottom:none}
     </div>
     <div id="linkBox" style="display:none">
       <div style="font-size:12px;color:var(--muted);margin:10px 0 6px">Link gerado para o participante:</div>
+      <div id="linkTestInfo" style="margin-bottom:8px"></div>
       <div class="link-wrap">
         <div class="link-url" id="linkUrl"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -481,6 +537,38 @@ var STATE={
 
 var DISC_NAMES={D:"Dominante",I:"Influente",S:"Estável",C:"Criterioso"};
 var TEMP_NAMES={Co:"Colérico",Sa:"Sanguíneo",Fl:"Fleumático",Me:"Melancólico"};
+var NED_NAMES={NA:"Analítico (A)",NB:"Organizado (B)",NC:"Interpessoal (C)",ND:"Inovador (D)"};
+var NED_DESC={
+  NA:"Lógico, factual, matemático — pensamento racional e baseado em dados",
+  NB:"Planejado, sequencial, detalhista — execução estruturada e processual",
+  NC:"Emocional, relacional, expressivo — sensibilidade humana e conexão",
+  ND:"Visual, criativo, holístico — intuição, inovação e visão integrativa"
+};
+var SAB_NAMES={Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+
+// ═══════════════════════════════════════════════════════════════
+// TIPOS DE TESTE — combinações comportamentais especializadas
+// ═══════════════════════════════════════════════════════════════
+var TEST_TYPES = {
+  A: {
+    label: "Teste A — Sabotadores + Ned Herrmann",
+    short: "Sabotadores + Ned Herrmann",
+    insts: ["SAB","NED"],
+    chip: "tA"
+  },
+  B: {
+    label: "Teste B — Sabotadores + DISC",
+    short: "Sabotadores + DISC",
+    insts: ["SAB","DISC"],
+    chip: "tB"
+  },
+  C: {
+    label: "Teste C — Sabotadores + Temperamentos",
+    short: "Sabotadores + Temperamentos",
+    insts: ["SAB","TEMP"],
+    chip: "tC"
+  }
+};
 
 // ═══════════════════════════════════════════════════════════════
 // PERGUNTAS — 26 perguntas conversacionais
@@ -489,17 +577,17 @@ var TEMP_NAMES={Co:"Colérico",Sa:"Sanguíneo",Fl:"Fleumático",Me:"Melancólico
 // dim: dimensão primária que mede
 // score[]: peso de cada alternativa para essa dimensão (0-5)
 // dims_multi[]: dimensões secundárias afetadas com pesos [{dim,score}]
-var QQ = [
+var QQ_ALL = [
 
 // ── DISC — Dominância ──────────────────────────────────────
-{id:0,phase:"Perfil Comportamental",dim:"D",
+{id:0,phase:"Perfil Comportamental",inst:"DISC",dim:"D",
  ctx:"Imagine que você está no trabalho e surge uma situação urgente. Sem tempo para esperar, sem todas as informações na mão.",
  q:"O que acontece naturalmente com você nesse momento?",
  opts:["Tomo a frente imediatamente — prefiro agir e ajustar depois","Envolvo as pessoas chave antes de qualquer movimento","Analiso com calma o que está acontecendo antes de decidir","Sigo o processo que existe e improviso dentro dele","Depende muito do quanto aquilo me afeta diretamente"],
  score:[5,3,2,3,3],
  multi:[{dim:"I",w:[3,4,2,2,2]},{dim:"C",w:[1,2,4,5,3]}]},
 
-{id:1,phase:"Perfil Comportamental",dim:"D",
+{id:1,phase:"Perfil Comportamental",inst:"DISC",dim:"D",
  ctx:"Numa discussão importante, você tem um ponto de vista diferente da maioria. Todos estão te olhando.",
  q:"O que você costuma fazer?",
  opts:["Defendo minha posição — não mudo só por pressão social","Tento convencer mostrando os benefícios do meu ponto","Ouço com atenção antes de decidir se vale a pena insistir","Peço dados e evidências para embasar melhor a discussão","Cedo na forma mas mantenho a essência do que acredito"],
@@ -507,14 +595,14 @@ var QQ = [
  multi:[{dim:"I",w:[3,5,3,2,2]},{dim:"C",w:[2,2,3,5,3]}]},
 
 // ── DISC — Influência ─────────────────────────────────────
-{id:2,phase:"Perfil Comportamental",dim:"I",
+{id:2,phase:"Perfil Comportamental",inst:"DISC",dim:"I",
  ctx:"Você está numa reunião importante e percebe que a energia do grupo está baixa — as pessoas estão desengajadas.",
  q:"O que você sente vontade de fazer nessa situação?",
  opts:["Assumo a condução e começo a mover o grupo com energia","Crio um momento mais leve para reconectar as pessoas","Fico atento ao que está incomodando e tento resolver","Foco no que precisa ser decidido e empurro para a agenda","Observo um pouco mais antes de me posicionar"],
  score:[4,5,3,3,2],
  multi:[{dim:"D",w:[4,2,2,4,2]},{dim:"S",w:[2,3,5,3,4]}]},
 
-{id:3,phase:"Perfil Comportamental",dim:"I",
+{id:3,phase:"Perfil Comportamental",inst:"DISC",dim:"I",
  ctx:"Uma apresentação importante para um grupo que ainda não te conhece. Você está de frente para essas pessoas.",
  q:"O que acontece dentro de você nesse momento?",
  opts:["Me energizo — esse tipo de situação me motiva de verdade","Fico animado mas com um frio na barriga que passa rápido","Me preparo muito porque não gosto de ser pego de surpresa","Prefiro muito mais o bastidor — apresentações não são minha praia","Me adapto bem, mas não é onde me sinto mais confortável"],
@@ -522,14 +610,14 @@ var QQ = [
  multi:[{dim:"D",w:[4,3,3,2,2]},{dim:"S",w:[2,2,3,5,4]}]},
 
 // ── DISC — Estabilidade ───────────────────────────────────
-{id:4,phase:"Perfil Comportamental",dim:"S",
+{id:4,phase:"Perfil Comportamental",inst:"DISC",dim:"S",
  ctx:"Seu gestor chega com uma mudança de última hora. Tudo que você planejou para a semana vai mudar.",
  q:"Como você reage internamente a isso?",
  opts:["Adapto rápido — mudança faz parte, não tem muito o que fazer","Fico um pouco incomodado mas me ajusto bem","Preciso de um tempo para processar — não gosto de mudança brusca","Me irrito internamente, mas consigo me controlar","Depende do quanto aquela mudança impacta o que já está em curso"],
  score:[2,3,5,2,4],
  multi:[{dim:"D",w:[4,3,2,4,3]},{dim:"C",w:[2,3,4,3,4]}]},
 
-{id:5,phase:"Perfil Comportamental",dim:"S",
+{id:5,phase:"Perfil Comportamental",inst:"DISC",dim:"S",
  ctx:"Uma semana puxada, muitas entregas. No limite, alguém da equipe pede sua ajuda urgente.",
  q:"O que você faz?",
  opts:["Paro e ajudo — o time em primeiro lugar, sempre","Avalio quanto tempo leva e, se der, ajudo com prazer","Explico que não consigo agora, mas marcamos pra logo depois","Ajudo, mas deixo claro que espero reciprocidade","Depende de quem é e do quanto me compromete"],
@@ -537,14 +625,14 @@ var QQ = [
  multi:[{dim:"I",w:[4,3,2,3,2]},{dim:"D",w:[2,3,4,3,3]}]},
 
 // ── DISC — Conformidade ───────────────────────────────────
-{id:6,phase:"Perfil Comportamental",dim:"C",
+{id:6,phase:"Perfil Comportamental",inst:"DISC",dim:"C",
  ctx:"Você recebe uma tarefa nova. Ainda não foi explicada completamente — há espaço para improvisar.",
  q:"Como você prefere encarar isso?",
  opts:["Começo logo e vou ajustando no caminho — aprendo na prática","Busco entender o contexto antes de qualquer ação","Monto um plano detalhado antes de dar o primeiro passo","Pesquiso referências e melhores práticas antes de agir","Faço um escopo mínimo e vou iterando com feedback"],
  score:[1,3,4,5,4],
  multi:[{dim:"D",w:[5,3,2,2,3]},{dim:"S",w:[2,4,5,4,4]}]},
 
-{id:7,phase:"Perfil Comportamental",dim:"C",
+{id:7,phase:"Perfil Comportamental",inst:"DISC",dim:"C",
  ctx:"Você está revisando um trabalho antes de entregar. Está bom — mas poderia estar melhor com mais 2 horas.",
  q:"O que você decide?",
  opts:["Entrego do jeito que está — prazo é prazo","Ajusto o que der em 15 minutos e entrego","Trabalho mais até chegar no padrão que considero adequado","Reviso item por item — não entrego sem ter certeza","Entrego, mas peço feedback para continuar melhorando"],
@@ -552,122 +640,130 @@ var QQ = [
  multi:[{dim:"D",w:[5,4,2,1,3]},{dim:"I",w:[2,3,3,2,4]}]},
 
 // ── TEMPERAMENTOS ─────────────────────────────────────────
-{id:8,phase:"Temperamento e Emoções",dim:"Co",
+{id:8,phase:"Temperamento e Emoções",inst:"TEMP",dim:"Co",
  ctx:"Imagine que algo dá errado no trabalho — um erro importante, um conflito, um atraso crítico.",
  q:"Qual é sua primeira reação, de verdade?",
  opts:["Resolvo na hora e já parto pra próxima — não fico ruminando","Respiro fundo, processo e ajo com calma depois","Quero entender tudo que aconteceu antes de qualquer movimento","Fico irritado por um momento, mas me reorganizo rápido","Absorvo internamente — preciso de tempo para me reequilibrar"],
  score:[4,3,3,5,2],
  multi:[{dim:"Sa",w:[3,4,3,2,2]},{dim:"Me",w:[2,3,5,2,4]},{dim:"Fl",w:[3,5,4,2,3]}]},
 
-{id:9,phase:"Temperamento e Emoções",dim:"Sa",
+{id:9,phase:"Temperamento e Emoções",inst:"TEMP",dim:"Sa",
  ctx:"É segunda-feira de manhã. A semana será intensa — muitas demandas, muita gente contando com você.",
  q:"Como você normalmente entra nessa semana?",
  opts:["Com energia — quanto mais movimento, mais me animo","Focado e determinado — vou executar o que precisa","Com cuidado — organizo tudo primeiro antes de agir","Relutante — preciso de um tempo para engatar no ritmo","Depende de como foi o fim de semana"],
  score:[5,3,2,1,3],
  multi:[{dim:"Co",w:[4,4,2,2,3]},{dim:"Fl",w:[2,4,5,4,3]}]},
 
-{id:10,phase:"Temperamento e Emoções",dim:"Me",
+{id:10,phase:"Temperamento e Emoções",inst:"TEMP",dim:"Me",
  ctx:"Você precisa tomar uma decisão importante — com prazo curto e informações incompletas.",
  q:"Como seu processo de decisão funciona naturalmente?",
  opts:["Decido rápido com o que tenho — tempo também é recurso","Consulto quem precisa consultar antes de decidir","Analiso com cuidado os dados disponíveis antes de qualquer coisa","Sigo minha intuição — ela raramente me trai nessas horas","Procuro mais informação mesmo que isso atrase um pouco"],
  score:[2,3,5,3,4],
  multi:[{dim:"Co",w:[5,3,2,3,2]},{dim:"Fl",w:[3,4,4,4,5]}]},
 
-{id:11,phase:"Temperamento e Emoções",dim:"Fl",
+{id:11,phase:"Temperamento e Emoções",inst:"TEMP",dim:"Fl",
  ctx:"Um colega comete um erro que impacta o trabalho de toda a equipe. Você precisa abordar isso.",
  q:"O que você naturalmente faz?",
  opts:["Dou um feedback direto e imediato — clareza resolve mais rápido","Espero o momento certo e converso de forma que motive a melhora","Converso em particular, com empatia, oferecendo apoio concreto","Analiso o que aconteceu e proponho um plano para não repetir","Espero a pessoa perceber sozinha — não gosto de confronto"],
  score:[3,4,5,4,2],
  multi:[{dim:"Co",w:[5,3,2,3,1]},{dim:"Me",w:[3,3,4,5,2]}]},
 
-// ── DOMINÂNCIA CEREBRAL (Ned Herrmann) ───────────────────
-{id:12,phase:"Dominância Cerebral",dim:"L",
- ctx:"Você está diante de um problema complexo que precisa ser resolvido.",
- q:"Como seu pensamento funciona naturalmente nesse processo?",
- opts:["Começo pelos dados — preciso de fatos e evidências para decidir","Imagino o resultado ideal e trabalho de trás para frente","Penso nas pessoas envolvidas e nos impactos humanos primeiro","Mapeio riscos, recursos e etapas antes de qualquer coisa","Combino tudo — dados, intuição e contexto humano"],
- score:[5,2,2,4,3],
- multi:[{dim:"R",w:[2,5,4,2,3]}]},
+// ── DOMINÂNCIA CEREBRAL (Ned Herrmann) — 4 QUADRANTES ───────
+// NA = Analítico  | NB = Organizado  | NC = Interpessoal  | ND = Inovador
+{id:12,phase:"Dominância Cerebral",inst:"NED",dim:"NA",
+ ctx:"Você está diante de um problema técnico complexo com várias variáveis em jogo.",
+ q:"O que naturalmente vem primeiro na sua cabeça?",
+ opts:["Quero ver os números, dados e fatos concretos antes de qualquer coisa","Vou organizar o problema em etapas para resolver sistematicamente","Preciso conversar com as pessoas envolvidas para entender o contexto","Visualizo possibilidades criativas e soluções não óbvias","Considero todas as abordagens em paralelo, sem priorizar uma"],
+ score:[5,2,1,2,3],
+ multi:[{dim:"NB",w:[2,5,1,2,3]},{dim:"NC",w:[1,2,5,2,3]},{dim:"ND",w:[2,2,1,5,3]}]},
 
-{id:13,phase:"Dominância Cerebral",dim:"R",
- ctx:"Você precisa criar algo novo — um projeto, uma solução, uma estratégia que ainda não existe.",
- q:"Como você naturalmente se engaja com isso?",
- opts:["Com entusiasmo — possibilidades abertas me energizam muito","Estruturo o processo criativo antes de começar a criar","Busco inspiração em referências externas e benchmarks","Processo internamente primeiro, sozinho, antes de compartilhar","Preciso de dados e exemplos concretos para criar com segurança"],
- score:[5,2,3,4,2],
- multi:[{dim:"L",w:[2,4,3,3,5]}]},
+{id:13,phase:"Dominância Cerebral",inst:"NED",dim:"NB",
+ ctx:"Você precisa entregar um projeto importante até uma data definida — com qualidade.",
+ q:"Como você naturalmente conduz o processo de execução?",
+ opts:["Crio um plano detalhado com etapas, prazos e responsáveis bem definidos","Levanto todos os dados e variáveis antes de começar a executar","Engajo o time, garantindo alinhamento humano em cada etapa","Visualizo o resultado final ideal e trabalho de trás para frente","Combino planejamento, dados, time e visão simultaneamente"],
+ score:[5,2,2,1,3],
+ multi:[{dim:"NA",w:[2,5,1,2,3]},{dim:"NC",w:[1,1,5,2,3]},{dim:"ND",w:[2,2,2,5,3]}]},
 
-{id:14,phase:"Dominância Cerebral",dim:"L",
- ctx:"Uma reunião está acontecendo. O assunto é importante para você.",
- q:"O que mais te irrita ou te desconecta nesse ambiente?",
- opts:["Quando não há conclusões claras nem próximos passos definidos","Excesso de burocracia e regras que travam a criatividade","Ambiente frio, sem conexão humana entre as pessoas","Falta de pauta, organização e objetividade na condução","Quando se fala muito e nada é decidido ou encaminhado"],
- score:[5,2,3,4,4],
- multi:[{dim:"R",w:[2,5,4,2,3]}]},
+{id:14,phase:"Dominância Cerebral",inst:"NED",dim:"NC",
+ ctx:"Uma decisão importante precisa ser tomada e envolve várias pessoas afetadas direta ou indiretamente.",
+ q:"O que você considera prioritariamente?",
+ opts:["Como cada pessoa vai se sentir e reagir emocionalmente à decisão","Os dados objetivos da situação acima de qualquer subjetividade","O processo decisório precisa ser ordenado, documentado e claro","Que decisão abre mais possibilidades e potencial transformador","Equilibro pessoas, dados, processo e visão na mesma medida"],
+ score:[5,1,2,2,3],
+ multi:[{dim:"NA",w:[1,5,2,2,3]},{dim:"NB",w:[2,2,5,1,3]},{dim:"ND",w:[2,1,1,5,3]}]},
+
+{id:26,phase:"Dominância Cerebral",inst:"NED",dim:"ND",
+ ctx:"Você tem espaço para repensar algo importante do zero — sem amarras nem regras prontas.",
+ q:"Como você naturalmente se engaja com essa oportunidade?",
+ opts:["Imagino possibilidades amplas, conexões inusitadas, o 'e se?'","Antes de imaginar, preciso de fatos sólidos sobre o estado atual","Estruturo um plano de exploração com fases bem definidas","Pergunto ao time o que cada um sonharia diferente","Equilibro intuição, dados, plano e diálogo simultaneamente"],
+ score:[5,2,1,2,3],
+ multi:[{dim:"NA",w:[2,5,1,1,3]},{dim:"NB",w:[1,1,5,2,3]},{dim:"NC",w:[1,1,2,5,3]}]},
 
 // ── INTELIGÊNCIA POSITIVA (Shirzad Chamine) ──────────────
-{id:15,phase:"Inteligência Positiva",dim:"QP",
+{id:15,phase:"Inteligência Positiva",inst:"QP",dim:"QP",
  ctx:"Uma semana difícil. As coisas fogem do controle. Resultados não vêm. A pressão está alta.",
  q:"O que acontece dentro de você nessas semanas?",
  opts:["Consigo manter a perspectiva — encontro algo de positivo na situação","Fico abalado mas me recupero relativamente rápido","Levo um tempo para processar antes de voltar ao equilíbrio","Fico bastante impactado e preciso de apoio para me reorganizar","Me isolo para processar — depois de um tempo me reconecto"],
  score:[5,4,3,2,3]},
 
-{id:16,phase:"Inteligência Positiva",dim:"QP",
+{id:16,phase:"Inteligência Positiva",inst:"QP",dim:"QP",
  ctx:"Você erra — algo sai errado por responsabilidade sua. Acontece.",
  q:"Como você trata isso internamente?",
  opts:["Aprendo, ajusto e sigo em frente com leveza — erro é parte do processo","Me cobro bastante, mas consigo passar por isso sem muita demora","Fico me questionando por um tempo antes de conseguir me perdoar","Sinto uma culpa forte que persiste e afeta outras áreas da vida","Cada erro me mobiliza a melhorar — uso como combustível"],
  score:[5,3,2,1,4]},
 
 // ── SABOTADORES INTERNOS (Shirzad Chamine) ───────────────
-{id:17,phase:"Sabotadores Internos",dim:"Juiz",
+{id:17,phase:"Sabotadores Internos",inst:"SAB",dim:"Juiz",
  ctx:"Você não atingiu um resultado que esperava. Algo ficou abaixo do que considerava aceitável.",
  q:"Qual é a voz que fala mais alto dentro de você nesses momentos?",
  opts:["Uma voz muito dura — sou muito exigente e crítico comigo mesmo","Reconheço o erro, aprendo e sigo — não fico me punindo","Me cobro, mas consigo equilibrar exigência e autocompaixão","Raramente me cobro demais — prefiro focar no que fazer agora","Fico um tempo desconfortável mas consigo me recuperar"],
  score:[5,1,3,1,3]},
 
-{id:18,phase:"Sabotadores Internos",dim:"Controlador",
+{id:18,phase:"Sabotadores Internos",inst:"SAB",dim:"Controlador",
  ctx:"Você delega uma tarefa para alguém. A pessoa vai fazer diferente de como você faria.",
  q:"O que acontece internamente enquanto aquilo está sendo feito?",
  opts:["Fico ansioso — fica difícil confiar que vai sair do jeito que precisa","Observo, mas consigo confiar no processo e no outro","Interfiro apenas se perceber que algo vai comprometer o resultado","Solto completamente — confio nas pessoas e no resultado","Monitoro de longe, mas sem interferir a menos que necessário"],
  score:[5,3,4,1,3]},
 
-{id:19,phase:"Sabotadores Internos",dim:"Realizador",
+{id:19,phase:"Sabotadores Internos",inst:"SAB",dim:"Realizador",
  ctx:"Fim de dia. Há pendências abertas — coisas que ficaram para amanhã.",
  q:"Como você se sente ao 'desligar' com pendências em aberto?",
  opts:["Difícil desligar — as pendências ficam pesando na minha cabeça","Consigo desligar quando estabeleço prioridades claras","Listo o que ficou, organizo e aí consigo descansar tranquilo","Aceito bem — sei que nem tudo pode ser resolvido no mesmo dia","Depende da urgência — nem toda pendência me afeta da mesma forma"],
  score:[5,3,4,1,3]},
 
-{id:20,phase:"Sabotadores Internos",dim:"Esquivador",
+{id:20,phase:"Sabotadores Internos",inst:"SAB",dim:"Esquivador",
  ctx:"Algo te incomoda profundamente em uma relação de trabalho. Mas falar vai gerar tensão.",
  q:"O que você costuma fazer nessa situação?",
  opts:["Evito ao máximo — prefiro absorver a não criar conflito","Às vezes falo, às vezes não — depende do quanto está me afetando","Me posiciono quando necessário, mas escolho o momento e a forma","Falo diretamente quando algo me incomoda — não guardo","Processo internamente, espero um tempo e aí abordo com calma"],
  score:[5,3,4,1,3]},
 
-{id:21,phase:"Sabotadores Internos",dim:"Hiperanalitico",
+{id:21,phase:"Sabotadores Internos",inst:"SAB",dim:"Hiperanalitico",
  ctx:"Uma decisão importante na sua frente. Você tem informação suficiente para decidir.",
  q:"O que costuma acontecer com você antes de realmente decidir?",
  opts:["Analiso demais e às vezes trava — paralisia por análise real","Busco mais informação mesmo sabendo que já tenho o suficiente","Decido com os dados que tenho sem precisar de tudo mapeado","Decido rápido e ajusto conforme o resultado vem","Consulto algumas pessoas para validar antes de decidir"],
  score:[5,4,2,1,3]},
 
-{id:22,phase:"Sabotadores Internos",dim:"Prestativo",
+{id:22,phase:"Sabotadores Internos",inst:"SAB",dim:"Prestativo",
  ctx:"Situação pessoal: você claramente precisava de algo para si mesmo, mas alguém pediu sua ajuda.",
  q:"O que acontece?",
  opts:["Ajudo — me sinto responsável pelo bem-estar das pessoas próximas","Às vezes ajudo, às vezes priorizo — depende da situação","Tenho limites relativamente claros e consigo comunicá-los","Priorizo a mim mesmo — aprendi que isso não é egoísmo","Ajudo, mas carrego um peso quando não cuido de mim"],
  score:[5,3,2,1,4]},
 
 // ── PERFIL SOB PRESSÃO + RELACIONAMENTO ──────────────────
-{id:23,phase:"Perfil Sob Pressão",dim:"D",
+{id:23,phase:"Perfil Sob Pressão",inst:"PRESS",dim:"D",
  ctx:"Prazos apertados, muitas cobranças ao mesmo tempo, expectativas altas em cima de você.",
  q:"Como você funciona nesse tipo de pressão?",
  opts:["Fico mais focado — pressão me ativa e melhora minha performance","Funciono bem mas sinto o custo físico e emocional depois","A qualidade cai — pressão excessiva me desorganiza","Fico ansioso mas entrego — o custo interno é alto","Me organizo, priorizo e crio sistemas para não afundar"],
  score:[5,3,2,2,4],
  multi:[{dim:"Co",w:[5,3,2,2,4]},{dim:"QP",w:[4,3,1,1,4]}]},
 
-{id:24,phase:"Perfil Sob Pressão",dim:"S",
+{id:24,phase:"Perfil Sob Pressão",inst:"PRESS",dim:"S",
  ctx:"Um conflito direto com alguém importante no trabalho. Posições opostas, tensão real.",
  q:"O que você naturalmente faz nessa situação?",
  opts:["Enfrento direto — não deixo conflito sem resolução","Busco um mediador ou um caminho de conciliação","Evito o confronto direto — prefiro esperar a tensão baixar","Escuto muito antes de me posicionar — ouço todos os lados","Me posiciono com cuidado, escolhendo bem o momento e as palavras"],
  score:[2,3,5,4,4],
  multi:[{dim:"D",w:[5,3,1,2,3]},{dim:"Esquivador",w:[1,3,5,3,3]}]},
 
-{id:25,phase:"Perfil Sob Pressão",dim:"I",
+{id:25,phase:"Perfil Sob Pressão",inst:"PRESS",dim:"I",
  ctx:"Você está trabalhando em algo que importa muito para você. As pessoas ao redor não estão engajadas.",
  q:"Como você lida com isso?",
  opts:["Me incomoda pouco — consigo trabalhar bem sozinho","Fico chateado — preciso do engajamento do grupo para me motivar","Busco engajar as pessoas — não consigo trabalhar bem no isolamento","Me isolo e foco — às vezes produtividade solo é mais eficiente","Entendo que cada um tem seu processo e respeito isso"],
@@ -676,26 +772,67 @@ var QQ = [
 ];
 
 // ═══════════════════════════════════════════════════════════════
+// FILTRO POR TIPO DE TESTE — QQ é o subconjunto ativo durante a sessão
+// ═══════════════════════════════════════════════════════════════
+var QQ = QQ_ALL; // será reatribuído quando o teste iniciar
+
+function filterQuestionsByTest(testType) {
+  var t = TEST_TYPES[testType] || TEST_TYPES.A;
+  // Ordenar: Sabotadores PRIMEIRO, depois o outro instrumento
+  var sabotadores = QQ_ALL.filter(function(q){ return q.inst === "SAB"; });
+  var outros = QQ_ALL.filter(function(q){
+    return t.insts.indexOf(q.inst) >= 0 && q.inst !== "SAB";
+  });
+  // Reset de ids sequenciais para o teste filtrado (importante para STATE.qi)
+  var combined = sabotadores.concat(outros);
+  combined.forEach(function(q, i){ q._qi = i; });
+  return combined;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // SISTEMA DE CHAT
 // ═══════════════════════════════════════════════════════════════
 var chatDone = false;
 var chatSending = false; // Trava para evitar duplo envio ao responder rápido
 
-var REACOES_POSITIVAS = [
-  "Que resposta interessante! ",
-  "Obrigada por compartilhar isso. ",
-  "Faz muito sentido. ",
-  "Gostei da sua honestidade aqui. ",
-  "Essa perspectiva diz muito sobre você. ",
-  "Entendido, muito obrigada. ",
+// ── Reações contextualizadas — adaptam-se ao tipo de resposta ──
+var REACOES_LETRA = [
+  "Anotado! ",
+  "Perfeito, registrado. ",
+  "Beleza, vamos seguir. ",
+  "Capturei aqui. ",
+  "Show, prosseguindo. ",
+  "Excelente, anotei. ",
+  "Entendido, seguimos. ",
+  "Ótimo, registrado. "
+];
+
+var REACOES_TEXTO_LIVRE = [
   "Que reflexão importante! ",
+  "Obrigada por compartilhar com tanta clareza. ",
+  "Faz muito sentido o que você trouxe. ",
+  "Adorei a forma como você colocou. ",
+  "Essa perspectiva diz muito sobre você. ",
+  "Que rico esse compartilhamento. ",
   "Isso revela bastante sobre como você funciona. "
 ];
 
+var REACOES_BLEND = [
+  "Boa, captei essa nuance entre as duas. ",
+  "Interessante essa combinação! ",
+  "Entendi — você se identifica com mais de uma. ",
+  "Que rico ver essa mistura nas suas escolhas. ",
+  "Anotada a combinação. "
+];
+
+// Reações antigas mantidas para compatibilidade
+var REACOES_POSITIVAS = REACOES_LETRA.concat(REACOES_TEXTO_LIVRE);
+
 var REACAO_COM_COMENTARIO = [
-  "Você comentou isso: [<<c>>] — isso enriquece muito a análise. ",
-  "Adorei o contexto que você trouxe — [<<c>>]. ",
-  "Seu complemento faz toda a diferença: [<<c>>]."
+  "Você comentou: [<<c>>] — isso enriquece bastante a análise. ",
+  "Adorei o contexto: [<<c>>]. ",
+  "Seu complemento fez toda a diferença: [<<c>>]. ",
+  "Captei essa observação: [<<c>>]. "
 ];
 
 var PHASE_TRANSITIONS = {
@@ -782,46 +919,77 @@ function sendAns() {
 
   var LBLS = ["A","B","C","D","E","F"];
   var q = QQ[STATE.qi];
+  var maxOpts = q.opts.length;
+  var validLetters = LBLS.slice(0, maxOpts);
 
-  // ── Parser inteligente: letra, texto livre, combinações ──
-  var letraMatch = raw.match(/^([A-Fa-f])\b/);
-  var entreMatch = raw.match(/entre\s+(?:a\s+)?(?:letra\s+)?([A-Fa-f])\s+e\s+(?:a\s+)?(?:letra\s+)?([A-Fa-f])/i);
-
-  var idx = -1, idx2 = -1, isBlended = false, textoLivre = false;
+  // ═════════════════════════════════════════════════════════════
+  // PARSER V2 — letra(s), texto livre, combinações até 4 letras
+  // ═════════════════════════════════════════════════════════════
+  var letters = [];      // índices das alternativas escolhidas (ordem importa: 1ª = principal)
   var comentario = "";
+  var textoLivre = false;
 
+  // 1. Padrão "ENTRE A E B" (mais antigo e específico)
+  var entreMatch = raw.match(/entre\s+(?:a\s+)?(?:letra\s+)?([A-Fa-f])\s+e\s+(?:a\s+)?(?:letra\s+)?([A-Fa-f])/i);
   if (entreMatch) {
-    idx  = LBLS.indexOf(entreMatch[1].toUpperCase());
-    idx2 = LBLS.indexOf(entreMatch[2].toUpperCase());
-    isBlended = true;
+    [entreMatch[1], entreMatch[2]].forEach(function(L){
+      var i = LBLS.indexOf(L.toUpperCase());
+      if (i >= 0 && i < maxOpts && letters.indexOf(i) < 0) letters.push(i);
+    });
     comentario = raw.replace(entreMatch[0],"").trim();
-  } else if (letraMatch) {
-    idx = LBLS.indexOf(letraMatch[1].toUpperCase());
-    var secondMatch = raw.slice(1).match(/(?:\s+e\s+|\s+ou\s+)([A-Fa-f])\b/i);
-    if (secondMatch) { idx2 = LBLS.indexOf(secondMatch[1].toUpperCase()); isBlended = true; }
-    comentario = raw.replace(/^[A-Fa-f][\s\-\u2013\u2014:,.]*/,"").trim();
-  } else {
-    // Texto livre: match semântico
+  }
+
+  // 2. Padrão "MAIS PARA X" / "PRIMEIRO QUE VEM É X" / "PRINCIPALMENTE X"
+  //    → quando encontrado, X é a PRINCIPAL (entra primeiro nas letters)
+  var primaryMatch = raw.match(/(?:primeiro\s+que\s+vem\s+(?:é\s+)?|primeiramente\s+|principalmente\s+|mais\s+para\s+|sobretudo\s+|antes\s+de\s+tudo\s+)(?:a\s+)?(?:letra\s+)?([A-Fa-f])\b/i);
+  if (primaryMatch && letters.length === 0) {
+    var idxP = LBLS.indexOf(primaryMatch[1].toUpperCase());
+    if (idxP >= 0 && idxP < maxOpts) letters.push(idxP);
+  }
+
+  // 3. Captura de letras no início — até 4 letras separadas por conectores
+  if (letters.length === 0) {
+    // Regex que capta sequência: letra + opcional conector + letra + ... (até 4)
+    var seqMatch = raw.match(/^\s*([A-Fa-f])(?:[\s,;]+(?:e\s+|ou\s+|também\s+|e\s+também\s+|\+\s*|\/\s*)?(?:letra\s+)?([A-Fa-f]))?(?:[\s,;]+(?:e\s+|ou\s+|também\s+|e\s+também\s+|\+\s*|\/\s*)?(?:letra\s+)?([A-Fa-f]))?(?:[\s,;]+(?:e\s+|ou\s+|também\s+|e\s+também\s+|\+\s*|\/\s*)?(?:letra\s+)?([A-Fa-f]))?/i);
+    if (seqMatch) {
+      for (var k = 1; k <= 4; k++) {
+        if (seqMatch[k]) {
+          var idxk = LBLS.indexOf(seqMatch[k].toUpperCase());
+          if (idxk >= 0 && idxk < maxOpts && letters.indexOf(idxk) < 0) letters.push(idxk);
+        }
+      }
+      comentario = raw.slice(seqMatch[0].length).replace(/^[\s\-\u2013\u2014:,.]*/,"").trim();
+    }
+  } else if (!comentario) {
+    // Veio do primaryMatch — pega o resto como comentário
+    comentario = raw.replace(primaryMatch[0],"").trim();
+  }
+
+  // 4. Texto livre — nenhuma letra encontrada, faz match semântico
+  if (letters.length === 0) {
     textoLivre = true;
     var rawLower = raw.toLowerCase();
     var bestIdx = -1, bestScore = 0;
-    for (var oi = 0; oi < q.opts.length; oi++) {
+    for (var oi = 0; oi < maxOpts; oi++) {
       var optWords = q.opts[oi].toLowerCase().split(/\s+/);
       var score = 0;
       optWords.forEach(function(w){ if (w.length > 3 && rawLower.indexOf(w) >= 0) score++; });
       if (score > bestScore) { bestScore = score; bestIdx = oi; }
     }
-    idx = bestIdx >= 0 ? bestIdx : Math.floor(q.opts.length / 2);
+    if (bestIdx >= 0) letters.push(bestIdx);
+    else letters.push(Math.floor(maxOpts / 2)); // fallback ao meio
     comentario = raw;
   }
 
-  if (idx2 >= q.opts.length) idx2 = -1;
-  if (idx < 0) idx = 0;
+  // 5. Limpeza final do comentário
+  comentario = comentario.replace(/^[\s\-\u2013\u2014:,.]*/,"").trim();
 
-  // ── Validação: rejeitar letra inválida isolada ou texto muito curto ──
+  // ═════════════════════════════════════════════════════════════
+  // VALIDAÇÕES
+  // ═════════════════════════════════════════════════════════════
   var rawTrimmed = raw.trim();
   var ehLetraIsolada = /^[A-Za-z]$/.test(rawTrimmed);
-  var letraValida = LBLS.slice(0, q.opts.length).indexOf(rawTrimmed.toUpperCase()) >= 0;
+  var letraValida = validLetters.indexOf(rawTrimmed.toUpperCase()) >= 0;
   var textoMuitoCurto = textoLivre && rawTrimmed.split(/\s+/).length < 3;
 
   if (ehLetraIsolada && !letraValida) {
@@ -829,7 +997,7 @@ function sendAns() {
       addBubble("ai",
         '<span class="ai-lbl">Vizzio</span>' +
         'A letra <strong>' + rawTrimmed.toUpperCase() + '</strong> não corresponde a nenhuma alternativa. ' +
-        'Escolha entre <strong>A</strong> e <strong>' + LBLS[q.opts.length-1] + '</strong>, ' +
+        'Escolha entre <strong>A</strong> e <strong>' + validLetters[validLetters.length-1] + '</strong>, ' +
         'ou escreva uma resposta com pelo menos 3 palavras. \uD83D\uDE0A'
       );
     }, 400);
@@ -846,9 +1014,20 @@ function sendAns() {
     inp.value = ""; inp.focus(); return;
   }
 
-  var letraDisplay = textoLivre
-    ? "(resposta livre)"
-    : isBlended && idx2 >= 0 ? LBLS[idx] + " e " + LBLS[idx2] : LBLS[idx];
+  // ═════════════════════════════════════════════════════════════
+  // FORMATAR EXIBIÇÃO E SALVAR
+  // ═════════════════════════════════════════════════════════════
+  var isBlend = letters.length > 1;
+  var idxPrincipal = letters[0];
+
+  var letraDisplay;
+  if (textoLivre) {
+    letraDisplay = "(resposta livre)";
+  } else if (isBlend) {
+    letraDisplay = letters.map(function(i){ return LBLS[i]; }).join(" e ");
+  } else {
+    letraDisplay = LBLS[idxPrincipal];
+  }
 
   inp.value = "";
 
@@ -860,36 +1039,47 @@ function sendAns() {
   // Exibir resposta do usuário
   var userText = '<strong>' + letraDisplay + '</strong>' + (comentario ? ' — ' + comentario : '');
   var userBbl = addBubble("user", userText);
-  // Scroll imediato para mostrar resposta enviada
   if (userBbl) setTimeout(function(){ userBbl.scrollIntoView({behavior:"smooth", block:"nearest"}); }, 50);
 
-  // Salvar resposta
-  // Para blended: fazer média ponderada dos scores
-  STATE.answers[STATE.qi] = isBlended && idx2 >= 0 ? {idx1:idx, idx2:idx2, blend:true} : idx;
+  // Salvar resposta — usa idxs[] para suportar 3+ letras
+  STATE.answers[STATE.qi] = isBlend ? {idxs: letters, blend: true} : idxPrincipal;
   STATE.comments[STATE.qi] = comentario;
   STATE.respostas[STATE.qi] = {
     qi: STATE.qi,
     fase: q.phase,
+    inst: q.inst,
     pergunta: q.q,
     contexto: q.ctx,
     letra: letraDisplay,
-    resposta: q.opts[idx] + (isBlended && idx2 >= 0 ? " / " + q.opts[idx2] : ""),
-    comentario: comentario
+    resposta: letters.map(function(i){ return q.opts[i]; }).join(" / "),
+    comentario: comentario,
+    textoLivre: textoLivre
   };
+
+  // ═════════════════════════════════════════════════════════════
+  // REAÇÃO CONTEXTUAL — escolhe baseado no TIPO de resposta
+  // ═════════════════════════════════════════════════════════════
+  function escolherReacao() {
+    var temComentario = comentario && comentario.length > 12;
+    if (temComentario && !textoLivre) {
+      // Letra + comentário → reação com citação
+      var tmpl = REACAO_COM_COMENTARIO[STATE.qi % REACAO_COM_COMENTARIO.length];
+      return tmpl.replace("<<c>>", comentario.substring(0, 60) + (comentario.length > 60 ? "..." : ""));
+    }
+    if (textoLivre) return REACOES_TEXTO_LIVRE[STATE.qi % REACOES_TEXTO_LIVRE.length];
+    if (isBlend) return REACOES_BLEND[STATE.qi % REACOES_BLEND.length];
+    return REACOES_LETRA[STATE.qi % REACOES_LETRA.length];
+  }
 
   var isLast = (STATE.qi === QQ.length - 1);
   var nome = STATE.part && STATE.part.name ? STATE.part.name.split(" ")[0] : "você";
 
   if (isLast) {
-    var reacao = REACOES_POSITIVAS[STATE.qi % REACOES_POSITIVAS.length];
-    if (comentario && comentario.length > 10) {
-      var tmpl = REACAO_COM_COMENTARIO[STATE.qi % REACAO_COM_COMENTARIO.length];
-      reacao = tmpl.replace("<<c>>", comentario.substring(0, 60) + (comentario.length > 60 ? "..." : ""));
-    }
+    var reacaoFinal = escolherReacao();
     showTyping(function() {
       addBubble("ai",
         '<span class="ai-lbl">Vizzio</span>' +
-        reacao +
+        reacaoFinal +
         '<br><br>' +
         'Você chegou ao final, <strong>' + nome + '</strong>! 🎉<br><br>' +
         'Processando suas respostas agora para gerar seu Perfil Comportamental completo...'
@@ -899,15 +1089,11 @@ function sendAns() {
       setTimeout(function() { compute(); }, 1200);
     }, 700);
   } else {
-    var reacao2 = REACOES_POSITIVAS[STATE.qi % REACOES_POSITIVAS.length];
-    if (comentario && comentario.length > 10) {
-      var tmpl2 = REACAO_COM_COMENTARIO[STATE.qi % REACAO_COM_COMENTARIO.length];
-      reacao2 = tmpl2.replace("<<c>>", comentario.substring(0, 60) + (comentario.length > 60 ? "..." : ""));
-    }
+    var reacao2 = escolherReacao();
     showTyping(function() {
       addBubble("ai", '<span class="ai-lbl">Vizzio</span>' + reacao2);
       STATE.qi++;
-      chatSending = false; // Liberar trava
+      chatSending = false;
       inp.disabled = false;
       document.getElementById("sendBtn").disabled = false;
       inp.focus();
@@ -930,23 +1116,44 @@ function _doCompute() {
   var dcnt = {D:0,I:0,S:0,C:0};
   var temp = {Co:0,Sa:0,Fl:0,Me:0};
   var tcnt = {Co:0,Sa:0,Fl:0,Me:0};
-  var brainL = 0, brainR = 0, brainCnt = 0;
+  var ned = {NA:0,NB:0,NC:0,ND:0};
+  var ncnt = {NA:0,NB:0,NC:0,ND:0};
+  var brainL = 0, brainR = 0, brainCnt = 0; // legado (fallback)
   var qpSum = 0, qpCnt = 0;
   var sabs = {Juiz:0,Controlador:0,Realizador:0,Esquivador:0,Hiperanalitico:0,Prestativo:0};
   var sabCnt = {Juiz:0,Controlador:0,Realizador:0,Esquivador:0,Hiperanalitico:0,Prestativo:0};
 
-  QQ.forEach(function(q, qi) {
-    var ans = STATE.answers[qi];
-    if (ans === undefined) return;
-
-    var getScore = function(scoreArr, answerData) {
-      if (answerData && typeof answerData === "object" && answerData.blend) {
+  // Helper que suporta tanto formato antigo (idx1+idx2) quanto novo (idxs[])
+  // Em blend, primeira letra tem peso 1.0, segunda 0.7, terceira 0.5, quarta 0.3 — decresce
+  var getScore = function(scoreArr, answerData) {
+    if (answerData === undefined || answerData === null) return 0;
+    if (typeof answerData === "object") {
+      // Novo formato: { idxs: [...], blend: true }
+      if (Array.isArray(answerData.idxs) && answerData.idxs.length > 0) {
+        var weights = [1.0, 0.7, 0.5, 0.3];
+        var sum = 0, wsum = 0;
+        answerData.idxs.forEach(function(idx, i){
+          var w = weights[i] || 0.2;
+          sum  += (scoreArr[idx] || 0) * w;
+          wsum += w;
+        });
+        return wsum > 0 ? sum / wsum : 0;
+      }
+      // Formato antigo: { idx1, idx2, blend: true }
+      if (answerData.blend && typeof answerData.idx1 === "number") {
         var s1 = scoreArr[answerData.idx1] || 0;
         var s2 = scoreArr[answerData.idx2] || 0;
         return (s1 + s2) / 2;
       }
-      return scoreArr[answerData] || 0;
-    };
+      return 0;
+    }
+    // Resposta simples: índice numérico
+    return scoreArr[answerData] || 0;
+  };
+
+  QQ.forEach(function(q, qi) {
+    var ans = STATE.answers[qi];
+    if (ans === undefined) return;
 
     var primaryScore = getScore(q.score, ans);
     var norm = (primaryScore / 5) * 100;
@@ -960,12 +1167,16 @@ function _doCompute() {
     else if (q.dim === "Sa"){ temp.Sa += norm; tcnt.Sa++; }
     else if (q.dim === "Fl"){ temp.Fl += norm; tcnt.Fl++; }
     else if (q.dim === "Me"){ temp.Me += norm; tcnt.Me++; }
+    else if (q.dim === "NA"){ ned.NA += norm; ncnt.NA++; }
+    else if (q.dim === "NB"){ ned.NB += norm; ncnt.NB++; }
+    else if (q.dim === "NC"){ ned.NC += norm; ncnt.NC++; }
+    else if (q.dim === "ND"){ ned.ND += norm; ncnt.ND++; }
     else if (q.dim === "L"){ brainL += norm; brainCnt++; }
     else if (q.dim === "R"){ brainR += norm; brainCnt++; }
     else if (q.dim === "QP"){ qpSum += norm; qpCnt++; }
     else if (sabs[q.dim] !== undefined){ sabs[q.dim] += norm; sabCnt[q.dim]++; }
 
-    // Dimensões secundárias
+    // Dimensões secundárias (peso 0.4)
     if (q.multi) {
       q.multi.forEach(function(m) {
         var ms = getScore(m.w, ans);
@@ -979,17 +1190,21 @@ function _doCompute() {
         else if (d === "Sa"){ temp.Sa += mn * 0.4; tcnt.Sa += 0.4; }
         else if (d === "Fl"){ temp.Fl += mn * 0.4; tcnt.Fl += 0.4; }
         else if (d === "Me"){ temp.Me += mn * 0.4; tcnt.Me += 0.4; }
+        else if (d === "NA"){ ned.NA += mn * 0.4; ncnt.NA += 0.4; }
+        else if (d === "NB"){ ned.NB += mn * 0.4; ncnt.NB += 0.4; }
+        else if (d === "NC"){ ned.NC += mn * 0.4; ncnt.NC += 0.4; }
+        else if (d === "ND"){ ned.ND += mn * 0.4; ncnt.ND += 0.4; }
         else if (d === "QP"){ qpSum += mn * 0.4; qpCnt += 0.4; }
         else if (sabs[d] !== undefined){ sabs[d] += mn * 0.4; sabCnt[d] += 0.4; }
       });
     }
   });
 
-  // Calcular médias e normalizar para 100
+  // ── Calcular médias e normalizar ──
   function avg(sum, cnt) { return cnt > 0 ? Math.round(sum / cnt) : 0; }
 
+  // DISC normalizado para somar 100%
   var discRaw = {D:avg(disc.D,dcnt.D), I:avg(disc.I,dcnt.I), S:avg(disc.S,dcnt.S), C:avg(disc.C,dcnt.C)};
-  // Normalizar DISC para somar 100%
   var discTotal = discRaw.D + discRaw.I + discRaw.S + discRaw.C;
   var discFinal = {
     D: discTotal > 0 ? Math.round(discRaw.D/discTotal*100) : 25,
@@ -997,10 +1212,10 @@ function _doCompute() {
     S: discTotal > 0 ? Math.round(discRaw.S/discTotal*100) : 25,
     C: discTotal > 0 ? Math.round(discRaw.C/discTotal*100) : 25
   };
-  // Encontrar dominante
   var discDom = "D";
   ["I","S","C"].forEach(function(k){ if(discFinal[k] > discFinal[discDom]) discDom = k; });
 
+  // Temperamentos
   var tempRaw = {Co:avg(temp.Co,tcnt.Co), Sa:avg(temp.Sa,tcnt.Sa), Fl:avg(temp.Fl,tcnt.Fl), Me:avg(temp.Me,tcnt.Me)};
   var tempTotal = tempRaw.Co + tempRaw.Sa + tempRaw.Fl + tempRaw.Me;
   var tempFinal = {
@@ -1009,21 +1224,45 @@ function _doCompute() {
     Fl: tempTotal > 0 ? Math.round(tempRaw.Fl/tempTotal*100) : 25,
     Me: tempTotal > 0 ? Math.round(tempRaw.Me/tempTotal*100) : 25
   };
+  var tempDom = "Co";
+  ["Sa","Fl","Me"].forEach(function(k){ if(tempFinal[k] > tempFinal[tempDom]) tempDom = k; });
 
-  var bL = brainCnt > 0 ? Math.round(brainL / brainCnt) : 50;
-  var bR = brainCnt > 0 ? Math.round(brainR / brainCnt) : 50;
-  // Normalizar cérebro
-  var bTotal = bL + bR;
-  bL = bTotal > 0 ? Math.round(bL/bTotal*100) : 50;
-  bR = 100 - bL;
+  // Ned Herrmann — 4 quadrantes normalizados para somar 100%
+  var nedRaw = {NA:avg(ned.NA,ncnt.NA), NB:avg(ned.NB,ncnt.NB), NC:avg(ned.NC,ncnt.NC), ND:avg(ned.ND,ncnt.ND)};
+  var nedTotal = nedRaw.NA + nedRaw.NB + nedRaw.NC + nedRaw.ND;
+  var nedFinal = {
+    NA: nedTotal > 0 ? Math.round(nedRaw.NA/nedTotal*100) : 25,
+    NB: nedTotal > 0 ? Math.round(nedRaw.NB/nedTotal*100) : 25,
+    NC: nedTotal > 0 ? Math.round(nedRaw.NC/nedTotal*100) : 25,
+    ND: nedTotal > 0 ? Math.round(nedRaw.ND/nedTotal*100) : 25
+  };
+  var nedDom = "NA";
+  ["NB","NC","ND"].forEach(function(k){ if(nedFinal[k] > nedFinal[nedDom]) nedDom = k; });
+
+  // Dominância cerebral legada (calculada a partir do Ned quando temos NED, senão usa L/R antigo)
+  var bL, bR;
+  if (nedTotal > 0) {
+    // A+B = esquerdo, C+D = direito
+    bL = nedFinal.NA + nedFinal.NB;
+    bR = nedFinal.NC + nedFinal.ND;
+  } else {
+    bL = brainCnt > 0 ? Math.round(brainL / brainCnt) : 50;
+    bR = brainCnt > 0 ? Math.round(brainR / brainCnt) : 50;
+    var bTotal = bL + bR;
+    bL = bTotal > 0 ? Math.round(bL/bTotal*100) : 50;
+    bR = 100 - bL;
+  }
 
   var qpScore = qpCnt > 0 ? Math.round(qpSum/qpCnt) : 50;
 
-  // Normalizar sabotadores
+  // Sabotadores
   var sabFinal = {};
   Object.keys(sabs).forEach(function(k){
     sabFinal[k] = sabCnt[k] > 0 ? Math.round(sabs[k]/sabCnt[k]) : 0;
   });
+
+  // Tipo de teste aplicado nesta sessão
+  var testType = (STATE.cfg && STATE.cfg.testType) || "A";
 
   var result = {
     id: Date.now(),
@@ -1033,9 +1272,13 @@ function _doCompute() {
     co: STATE.part.co,
     role: STATE.part.role,
     level: STATE.cfg ? STATE.cfg.lv : "lider",
+    testType: testType,
     disc: discFinal,
     discDom: discDom,
     temp: tempFinal,
+    tempDom: tempDom,
+    ned: nedFinal,
+    nedDom: nedDom,
     brain: {L:bL, R:bR},
     qp: {score:qpScore},
     sab: sabFinal,
@@ -1073,11 +1316,26 @@ function showResult(r) {
 function buildResultHTML(r) {
   var dn = DISC_NAMES;
   var tn = TEMP_NAMES;
+  var nn = NED_NAMES;
   var DISC_COLORS = {D:"#F87171",I:"#FCD34D",S:"#4ADE80",C:"#60A5FA"};
   var TEMP_COLORS = {Co:"#EF4444",Sa:"#F59E0B",Fl:"#22C55E",Me:"#3B82F6"};
-  var BRAIN_COLORS = {L:"#3B82F6",R:"#8B5CF6"};
+  var NED_COLORS  = {NA:"#3B82F6",NB:"#22C55E",NC:"#F59E0B",ND:"#A78BFA"};
 
-  var profileLabel = dn[r.discDom] + " (" + r.discDom + ")";
+  var tt = r.testType || "A";
+  var ttInfo = TEST_TYPES[tt] || TEST_TYPES.A;
+  var insts = ttInfo.insts;
+
+  // Badge dominante: depende do teste
+  var domBadge = "";
+  if (insts.indexOf("DISC") >= 0 && r.discDom) {
+    domBadge = "Perfil DISC: " + dn[r.discDom] + " (" + r.discDom + ")";
+  } else if (insts.indexOf("TEMP") >= 0 && r.tempDom) {
+    domBadge = "Temperamento: " + tn[r.tempDom];
+  } else if (insts.indexOf("NED") >= 0 && r.nedDom) {
+    domBadge = "Dominância: " + nn[r.nedDom];
+  } else {
+    domBadge = "Sabotadores em destaque";
+  }
 
   var h = '';
   // ── CABEÇALHO PAPEL TIMBRADO (aparece no PDF) ──────────────────
@@ -1092,7 +1350,7 @@ function buildResultHTML(r) {
   h += '<div class="print-header-right">';
   h += '<div style="font-size:11px;color:#666;text-align:right;line-height:1.6">';
   h += 'Assessment Comportamental<br>';
-  h += '<span style="color:#00D4C8;font-weight:700">Diagnóstico de Perfil</span><br>';
+  h += '<span style="color:#00D4C8;font-weight:700">' + ttInfo.short + '</span><br>';
   h += new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
   h += '</div></div></div>';
   h += '<div class="print-divider"></div>';
@@ -1100,73 +1358,73 @@ function buildResultHTML(r) {
   h += '<div class="r-hero">';
   h += '<div class="r-name">' + r.name + '</div>';
   h += '<div class="r-meta">' + (r.role||"") + (r.co ? " · " + r.co : "") + '</div>';
-  h += '<div class="r-badge">Perfil Dominante: ' + profileLabel + '</div>';
+  h += '<div class="r-badge">' + domBadge + '</div>';
   h += '</div>';
 
   h += '<div class="r-body">';
 
-  // DISC
-  h += '<div class="r-sec"><div class="r-sec-ttl">🎯 Perfil DISC</div>';
-  h += '<div class="disc4">';
-  ["D","I","S","C"].forEach(function(k){
-    var isLead = k === r.discDom;
-    h += '<div class="di' + (isLead?' lead':'') + '">';
-    h += '<div class="di-l" style="color:' + DISC_COLORS[k] + '">' + k + '</div>';
-    h += '<div class="di-p">' + r.disc[k] + '%</div>';
-    h += '<div class="di-n">' + dn[k] + '</div>';
-    h += '</div>';
-  });
-  h += '</div></div>';
-
-  // Temperamentos
-  h += '<div class="r-sec"><div class="r-sec-ttl">🌡️ Temperamentos</div>';
-  Object.keys(tn).forEach(function(k){
-    var pct = r.temp[k];
-    h += '<div class="bar-item">';
-    h += '<div class="bar-top"><span>' + tn[k] + '</span><span>' + pct + '%</span></div>';
-    h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + pct + '" style="width:0%;background:' + TEMP_COLORS[k] + '"></div></div>';
-    h += '</div>';
-  });
-  h += '</div>';
-
-  // Dominância Cerebral
-  h += '<div class="r-sec"><div class="r-sec-ttl">🧠 Dominância Cerebral</div>';
-  [{k:"L",n:"Esquerdo — Lógico / Analítico",c:"#3B82F6"},{k:"R",n:"Direito — Criativo / Intuitivo",c:"#8B5CF6"}].forEach(function(x){
-    var pct = r.brain[x.k];
-    h += '<div class="bar-item">';
-    h += '<div class="bar-top"><span>' + x.n + '</span><span>' + pct + '%</span></div>';
-    h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + pct + '" style="width:0%;background:' + x.c + '"></div></div>';
-    h += '</div>';
-  });
-  h += '</div>';
-
-  // QP
-  var qpColor = r.qp.score >= 70 ? "#22C55E" : r.qp.score >= 45 ? "#F59E0B" : "#EF4444";
-  h += '<div class="r-sec"><div class="r-sec-ttl">✨ Inteligência Positiva (QP)</div>';
-  h += '<div class="bar-item">';
-  h += '<div class="bar-top"><span>Quociente Positivo</span><span style="color:' + qpColor + '">' + r.qp.score + '/100</span></div>';
-  h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + r.qp.score + '" style="width:0%;background:' + qpColor + '"></div></div>';
-  h += '</div></div>';
-
-  // Sabotadores
+  // ── Sabotadores SEMPRE aparecem (eixo comum a todos os testes) ──
   h += '<div class="r-sec"><div class="r-sec-ttl">⚡ Sabotadores Internos</div>';
-  var sabEntries = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];});
-  var sabNames = {Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+  var sabEntries = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];});
   sabEntries.forEach(function(e){
     h += '<div class="sab-row">';
-    h += '<div class="sab-lbl">' + (sabNames[e[0]]||e[0]) + '</div>';
+    h += '<div class="sab-lbl">' + (SAB_NAMES[e[0]]||e[0]) + '</div>';
     h += '<div class="sab-bg"><div class="sab-fill" data-pct="' + e[1] + '" style="width:0%"></div></div>';
     h += '<div class="sab-num">' + e[1] + '</div>';
     h += '</div>';
   });
   h += '</div>';
 
+  // ── DISC (Teste B) ──
+  if (insts.indexOf("DISC") >= 0) {
+    h += '<div class="r-sec"><div class="r-sec-ttl">🎯 Perfil DISC</div>';
+    h += '<div class="disc4">';
+    ["D","I","S","C"].forEach(function(k){
+      var isLead = k === r.discDom;
+      h += '<div class="di' + (isLead?' lead':'') + '">';
+      h += '<div class="di-l" style="color:' + DISC_COLORS[k] + '">' + k + '</div>';
+      h += '<div class="di-p">' + (r.disc[k]||0) + '%</div>';
+      h += '<div class="di-n">' + dn[k] + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  }
+
+  // ── Temperamentos (Teste C) ──
+  if (insts.indexOf("TEMP") >= 0) {
+    h += '<div class="r-sec"><div class="r-sec-ttl">🌡️ Temperamentos</div>';
+    Object.keys(tn).forEach(function(k){
+      var pct = (r.temp && r.temp[k]) || 0;
+      h += '<div class="bar-item">';
+      h += '<div class="bar-top"><span>' + tn[k] + '</span><span>' + pct + '%</span></div>';
+      h += '<div class="bar-bg"><div class="bar-fill" data-pct="' + pct + '" style="width:0%;background:' + TEMP_COLORS[k] + '"></div></div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── Ned Herrmann — 4 quadrantes (Teste A) ──
+  if (insts.indexOf("NED") >= 0 && r.ned) {
+    h += '<div class="r-sec"><div class="r-sec-ttl">🧠 Dominância Cerebral — Ned Herrmann (4 quadrantes)</div>';
+    h += '<div class="ned-grid">';
+    ["NA","NB","NC","ND"].forEach(function(k){
+      var pct = r.ned[k] || 0;
+      var isDom = k === r.nedDom;
+      h += '<div class="ned-card' + (isDom ? " ned-dom" : "") + '" style="border-color:' + NED_COLORS[k] + (isDom ? "" : "33") + '">';
+      h += '<div class="ned-pct" style="color:' + NED_COLORS[k] + '">' + pct + '%</div>';
+      h += '<div class="ned-ttl">' + nn[k] + '</div>';
+      h += '<div class="ned-desc">' + NED_DESC[k] + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  }
+
   // Tela de obrigado (não aparece no print)
   // ── RODAPÉ PAPEL TIMBRADO ──────────────────────────────────────
   h += '<div class="print-footer">';
   h += '<div class="print-footer-line"></div>';
   h += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px">';
-  h += '<div style="font-size:10px;color:#999">Vizzio Training · Assessment Comportamental · vizziotraining.com.br</div>';
+  h += '<div style="font-size:10px;color:#999">Vizzio Training · ' + ttInfo.short + ' · vizziotraining.com.br</div>';
   h += '<div style="font-size:10px;color:#999">Desenvolvido por Tríade Resultados · Alexandre Amorim</div>';
   h += '</div></div>';
 
@@ -1229,64 +1487,67 @@ function gerarConclusao(r) {
 }
 
 function gerarAIAdmin(r) {
-  var key = loadKey() || GROQ;
-  if (!key) return;
+  var key = loadKey() || (typeof GROQ !== "undefined" ? GROQ : "");
+  // (chamada à API só ocorre se houver chave OU /api/ai disponível — callGroq lida com isso)
 
-  var sabStr = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];})
-    .slice(0,4).map(function(e){return e[0]+"="+e[1]+"%";}).join(", ");
-  var sabTop2 = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];})
-    .slice(0,2).map(function(e){return e[0];}).join(" e ");
+  var tt = r.testType || "A";
+  var ttInfo = TEST_TYPES[tt] || TEST_TYPES.A;
+  var insts = ttInfo.insts;
+
+  var sabStr = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
+    .map(function(e){return (SAB_NAMES[e[0]]||e[0])+"="+e[1]+"%";}).join(", ");
+  var sabTop2 = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
+    .slice(0,2).map(function(e){return SAB_NAMES[e[0]]||e[0];}).join(" e ");
+
+  var perfilLinhas = ["Sabotadores: " + sabStr];
+  var instrSegundo = "";
+
+  if (insts.indexOf("DISC") >= 0) {
+    instrSegundo = "DISC";
+    perfilLinhas.push("DISC: D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C +
+                      "% | Dominante: " + r.discDom + " (" + DISC_NAMES[r.discDom] + ")");
+  } else if (insts.indexOf("TEMP") >= 0) {
+    instrSegundo = "Temperamentos de Hipócrates";
+    perfilLinhas.push("Temperamentos: Colérico=" + r.temp.Co + "% Sanguíneo=" + r.temp.Sa +
+                      "% Fleumático=" + r.temp.Fl + "% Melancólico=" + r.temp.Me +
+                      "% | Dominante: " + TEMP_NAMES[r.tempDom]);
+  } else if (insts.indexOf("NED") >= 0) {
+    instrSegundo = "Ned Herrmann (4 quadrantes)";
+    perfilLinhas.push("Ned Herrmann: A-Analítico=" + r.ned.NA + "% | B-Organizado=" + r.ned.NB +
+                      "% | C-Interpessoal=" + r.ned.NC + "% | D-Inovador=" + r.ned.ND +
+                      "% | Dominante: " + NED_NAMES[r.nedDom]);
+  }
 
   var comentarios = (r.respostas||[])
     .filter(function(x){ return x.comentario && x.comentario.trim().length > 8; })
-    .slice(0,6)
-    .map(function(x){ return "["+x.fase+"] "+x.letra+" — "+x.comentario.trim().substring(0,180); });
-  var comentStr = comentarios.length > 0
-    ? comentarios.join("\n")
-    : "Participante não adicionou comentários escritos.";
+    .slice(0, 6)
+    .map(function(x){ return "[" + x.fase + "] " + x.letra + " — " + x.comentario.trim().substring(0,180); });
+  var comentStr = comentarios.length > 0 ? comentarios.join("\n") : "Participante não adicionou comentários escritos.";
 
-  var dn = DISC_NAMES;
-  var tn = TEMP_NAMES;
-
-  var sabStr = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];}).slice(0,4).map(function(e){return e[0]+"="+e[1]+"%";}).join(", ");
-  var sabTop2 = Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];}).slice(0,2).map(function(e){return e[0];}).join(" e ");
-  var comentarios = (r.respostas||[]).filter(function(x){return x.comentario&&x.comentario.trim().length>8;}).slice(0,6).map(function(x){return "["+x.fase+"] "+x.letra+" — "+x.comentario.trim().substring(0,180);});
-  var comentStr = comentarios.length>0 ? comentarios.join("\n") : "Participante não adicionou comentários escritos.";
-  var dn = DISC_NAMES;
-  var prompt = "Você é um especialista comportamental sênior. Escreva com a precisão de um psicólogo organizacional e a clareza de um coach executivo de alto nível.\n\n" +
+  var prompt =
+    "Você é um especialista comportamental sênior. Escreva com a precisão de um psicólogo organizacional e a clareza de um coach executivo de alto nível.\n\n" +
+    "ESCOPO DA ANÁLISE: " + ttInfo.short + "\n" +
+    "Analise APENAS estes DOIS instrumentos. NÃO mencione outros instrumentos comportamentais que não façam parte deste teste.\n\n" +
     "REGRAS OBRIGATÓRIAS:\n" +
     "1. NUNCA repita a mesma informação em seções diferentes\n" +
-    "2. NUNCA mencione o nome do perfil DISC ou sabotador mais de UMA VEZ por seção\n" +
-    "3. Cada seção deve revelar algo NOVO que as outras não disseram\n" +
-    "4. Correlacione os instrumentos em frases únicas — ex: 'O D alto somado ao sabotador Juiz cria X'\n" +
-    "5. Escreva em linguagem fluida, sem bullet points com asteriscos\n" +
-    "6. Seja ESPECÍFICO: cite números quando relevante (D=" + r.disc.D + "%, QP=" + r.qp.score + ")\n" +
-    "7. COMPLETE todas as seções inteiramente — especialmente as 3 recomendações\n\n" +
+    "2. Cada seção deve revelar algo NOVO que as outras não disseram\n" +
+    "3. Correlacione Sabotadores com " + instrSegundo + " em CADA seção — sem isolar nenhum\n" +
+    "4. Linguagem fluida, sem asteriscos, sem bullets\n" +
+    "5. Seja ESPECÍFICO: cite números quando relevante\n" +
+    "6. COMPLETE todas as seções inteiramente\n\n" +
     "PERFIL:\n" +
     "Nome: " + r.name + " | Cargo: " + (r.role||"—") + " | Empresa: " + (r.co||"—") + "\n" +
-    "DISC: D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C + "% | Dominante: " + r.discDom + "\n" +
-    "Temperamento: Colérico=" + r.temp.Co + "% Sanguíneo=" + r.temp.Sa + "% Fleumático=" + r.temp.Fl + "% Melancólico=" + r.temp.Me + "%\n" +
-    "Dominância Cerebral: Esquerdo=" + r.brain.L + "% Direito=" + r.brain.R + "%\n" +
-    "QP: " + r.qp.score + "/100\n" +
-    "Sabotadores: " + sabStr + "\n\n" +
+    perfilLinhas.join("\n") + "\n\n" +
     "RESPOSTAS ESCRITAS DO PARTICIPANTE:\n" + comentStr + "\n\n" +
-    "ESTRUTURA OBRIGATÓRIA — escreva cada seção em parágrafos corridos, sem bullets:\n\n" +
-    "🧠 SÍNTESE DO PERFIL\n" +
-    "2-3 frases. Correlacione DISC+temperamento+cérebro num padrão único e coerente.\n\n" +
-    "💪 FORÇAS REAIS\n" +
-    "3 forças específicas desta combinação. Para cada uma, cite o mecanismo em 1 frase.\n\n" +
-    "⚠️ ZONAS DE ATENÇÃO\n" +
-    "Como " + sabTop2 + " amplificam vulnerabilidades do perfil " + r.discDom + ". 2-3 frases com situações reais.\n\n" +
-    "🔥 SOB PRESSÃO\n" +
-    "2 frases: como reage e o que os outros percebem que ela não percebe.\n\n" +
-    "🤝 NOS RELACIONAMENTOS\n" +
-    "2 frases: estilo de comunicação e onde gera atrito sem perceber.\n\n" +
-    "🎯 COMO TRABALHAR COM ESSA PESSOA\n" +
-    "3 recomendações práticas numeradas (1, 2, 3). Cada uma em 1-2 frases diretas para o consultor aplicar.\n\n" +
-    "💡 SÍNTESE FINAL\n" +
-    "2-3 frases conectando todos os instrumentos. O padrão único desta pessoa.\n\n" +
-    "REGRA CRÍTICA: Complete TODAS as 7 seções. Especialmente a seção 🎯 e a 💡 devem ser escritas INTEIRAMENTE antes de encerrar. " +
-    "Máximo 500 palavras no total — seja direto e preciso em cada seção. Sem asteriscos, sem bullets, sem markdown.";
+    "ESTRUTURA — parágrafos corridos, sem bullets:\n\n" +
+    "🧠 SÍNTESE DO PERFIL\n2-3 frases conectando Sabotadores + " + instrSegundo + " num padrão único.\n\n" +
+    "💪 FORÇAS REAIS\n3 forças desta combinação. Para cada uma, o mecanismo em 1 frase.\n\n" +
+    "⚠️ ZONAS DE ATENÇÃO\nComo " + sabTop2 + " amplificam vulnerabilidades. 2-3 frases com situações reais.\n\n" +
+    "🔥 SOB PRESSÃO\n2 frases: como reage e o que os outros percebem que ela não percebe.\n\n" +
+    "🤝 NOS RELACIONAMENTOS\n2 frases: estilo de comunicação e onde gera atrito sem perceber.\n\n" +
+    "🎯 COMO TRABALHAR COM ESSA PESSOA\n3 recomendações práticas numeradas (1, 2, 3). Cada uma em 2-3 frases.\n\n" +
+    "💡 SÍNTESE FINAL\n2-3 frases conectando os dois instrumentos no padrão único desta pessoa.\n\n" +
+    "Complete TODAS as 7 seções. Máximo 500 palavras.";
 
   callGroq(prompt, function(txt) {
     if (!txt) return;
@@ -1518,12 +1779,27 @@ function renderResults() {
   var dn = DISC_NAMES;
   var h = "";
   results.forEach(function(r, i) {
-    var chip = r.discDom ? '<span class="chip c'+r.discDom+'">'+r.discDom+' — '+(dn[r.discDom]||"")+'</span>' : "—";
+    // Chip de perfil — adapta ao tipo de teste
+    var chip = "—";
+    var tt = r.testType || "A";
+    var ttInfo = TEST_TYPES[tt] || TEST_TYPES.A;
+
+    if (r.status === "done") {
+      if (ttInfo.insts.indexOf("DISC") >= 0 && r.discDom) {
+        chip = '<span class="chip c'+r.discDom+'">'+r.discDom+' — '+(dn[r.discDom]||"")+'</span>';
+      } else if (ttInfo.insts.indexOf("TEMP") >= 0 && r.tempDom) {
+        chip = '<span class="chip cI">'+TEMP_NAMES[r.tempDom]+'</span>';
+      } else if (ttInfo.insts.indexOf("NED") >= 0 && r.nedDom) {
+        chip = '<span class="chip cC">'+NED_NAMES[r.nedDom]+'</span>';
+      }
+    }
+
+    var testChip = '<span class="chip-test ' + ttInfo.chip + '">🎯 ' + tt + '</span>';
     var status = r.status === "done"
       ? '<span class="s-done">✓ Concluído</span>'
       : '<span class="s-pend">⏳ Pendente</span>';
     h += '<tr>';
-    h += '<td style="font-weight:600">' + (r.name||"—") + '</td>';
+    h += '<td style="font-weight:600">' + (r.name||"—") + ' ' + testChip + '</td>';
     h += '<td>' + (r.co||"—") + '</td>';
     h += '<td>' + (r.role||"—") + '</td>';
     h += '<td>' + chip + '</td>';
@@ -1567,43 +1843,69 @@ function _gerarEMostrar(i) {
       '</div>';
   }
 
-  // Construir prompt direto aqui para não depender de função externa
-  var sabStr = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
-    .slice(0,4).map(function(e){return e[0]+"="+e[1]+"%";}).join(", ");
-  var sabTop2 = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
-    .slice(0,2).map(function(e){return e[0];}).join(" e ");
-  var dn = {D:"Dominante",I:"Influente",S:"Estável",C:"Criterioso"};
-  var tn = {Co:"Colérico",Sa:"Sanguíneo",Fl:"Fleumático",Me:"Melancólico"};
+  var tt = r.testType || "A";
+  var ttInfo = TEST_TYPES[tt] || TEST_TYPES.A;
+  var insts = ttInfo.insts;
 
+  // Construir bloco "PERFIL" apenas com os instrumentos do teste
+  var sabStr = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
+    .map(function(e){return (SAB_NAMES[e[0]]||e[0])+"="+e[1]+"%";}).join(", ");
+  var sabTop2 = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];})
+    .slice(0,2).map(function(e){return SAB_NAMES[e[0]]||e[0];}).join(" e ");
+
+  var perfilLinhas = ["Sabotadores: " + sabStr];
+  var instrSegundo = "";  // nome amigável do segundo instrumento (para o prompt)
+  var sintese2 = "";      // resumo do segundo instrumento
+
+  if (insts.indexOf("DISC") >= 0) {
+    instrSegundo = "DISC";
+    sintese2 = "DISC: D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C +
+               "% | Dominante: " + r.discDom + " (" + DISC_NAMES[r.discDom] + ")";
+    perfilLinhas.push(sintese2);
+  } else if (insts.indexOf("TEMP") >= 0) {
+    instrSegundo = "Temperamentos de Hipócrates";
+    sintese2 = "Temperamentos: Colérico=" + r.temp.Co + "% Sanguíneo=" + r.temp.Sa +
+               "% Fleumático=" + r.temp.Fl + "% Melancólico=" + r.temp.Me +
+               "% | Dominante: " + TEMP_NAMES[r.tempDom];
+    perfilLinhas.push(sintese2);
+  } else if (insts.indexOf("NED") >= 0) {
+    instrSegundo = "Ned Herrmann (4 quadrantes)";
+    sintese2 = "Ned Herrmann (4 quadrantes): " +
+               "A-Analítico=" + r.ned.NA + "% | B-Organizado=" + r.ned.NB +
+               "% | C-Interpessoal=" + r.ned.NC + "% | D-Inovador=" + r.ned.ND +
+               "% | Dominante: " + NED_NAMES[r.nedDom];
+    perfilLinhas.push(sintese2);
+  }
+
+  // Comentários escritos do participante (apenas das fases do teste atual)
   var comentarios = (r.respostas||[])
-    .filter(function(x){return x.comentario && x.comentario.trim().length > 8;})
-    .slice(0,5)
-    .map(function(x){return "["+x.fase+"] "+x.letra+" — "+x.comentario.trim().substring(0,150);});
+    .filter(function(x){ return x.comentario && x.comentario.trim().length > 8; })
+    .slice(0, 6)
+    .map(function(x){ return "[" + x.fase + "] " + x.letra + " — " + x.comentario.trim().substring(0,180); });
   var comentStr = comentarios.length > 0 ? comentarios.join("\n") : "Sem comentários adicionais.";
 
   var prompt =
     "Você é um especialista comportamental sênior. Escreva com a precisão de um psicólogo organizacional e a clareza de um coach executivo experiente.\n\n" +
+    "ESCOPO DA ANÁLISE: " + ttInfo.short + "\n" +
+    "Analise APENAS estes DOIS instrumentos. Não mencione outros (DISC, Temperamentos, Ned, QP, Inteligência Positiva) que NÃO estejam neste teste.\n\n" +
     "REGRAS:\n" +
     "1. Nunca repita a mesma informação em seções diferentes\n" +
     "2. Cada seção revela algo novo e específico\n" +
-    "3. Correlacione os instrumentos — nunca descreva cada um isoladamente\n" +
+    "3. CORRELACIONE Sabotadores com " + instrSegundo + " em CADA seção — nunca descreva isoladamente\n" +
     "4. Sem asteriscos, sem bullets, sem markdown — texto corrido\n" +
     "5. Complete TODAS as seções inteiramente, especialmente 🎯 e 💡\n\n" +
-    "PERFIL:\n" +
+    "PARTICIPANTE:\n" +
     "Nome: " + r.name + " | Cargo: " + (r.role||"—") + " | Empresa: " + (r.co||"—") + "\n" +
-    "DISC: D=" + r.disc.D + "% I=" + r.disc.I + "% S=" + r.disc.S + "% C=" + r.disc.C + "% | Dominante: " + r.discDom + " (" + (dn[r.discDom]||r.discDom) + ")\n" +
-    "Temperamento: Colérico=" + r.temp.Co + "% Sanguíneo=" + r.temp.Sa + "% Fleumático=" + r.temp.Fl + "% Melancólico=" + r.temp.Me + "%\n" +
-    "Dominância Cerebral: Esquerdo=" + r.brain.L + "% Direito=" + r.brain.R + "%\n" +
-    "QP: " + r.qp.score + "/100 | Sabotadores: " + sabStr + "\n\n" +
+    perfilLinhas.join("\n") + "\n\n" +
     "RESPOSTAS DO PARTICIPANTE:\n" + comentStr + "\n\n" +
-    "ESTRUTURA:\n" +
-    "🧠 SÍNTESE DO PERFIL\n2-3 frases correlacionando DISC+temperamento+cérebro.\n\n" +
-    "💪 FORÇAS REAIS\n3 forças específicas desta combinação com o mecanismo de cada uma.\n\n" +
-    "⚠️ ZONAS DE ATENÇÃO\nComo " + sabTop2 + " amplificam vulnerabilidades do perfil " + r.discDom + ". Situações reais.\n\n" +
-    "🔥 SOB PRESSÃO\nComo reage, o que os outros percebem, o que ela não percebe.\n\n" +
-    "🤝 NOS RELACIONAMENTOS\nEstilo de comunicação, liderança, onde gera atrito sem perceber.\n\n" +
-    "🎯 COMO TRABALHAR COM ESSA PESSOA\n3 recomendações numeradas (1, 2, 3). Cada uma completa em 2-3 frases.\n\n" +
-    "💡 SÍNTESE FINAL\n2-3 frases conectando tudo. O padrão único desta pessoa.\n\n" +
+    "ESTRUTURA OBRIGATÓRIA — escreva em parágrafos corridos:\n\n" +
+    "🧠 SÍNTESE DO PERFIL\n2-3 frases conectando os Sabotadores principais com o " + instrSegundo + " dominante.\n\n" +
+    "💪 FORÇAS REAIS\n3 forças que emergem desta combinação específica. Para cada uma, descreva o mecanismo interno em 1 frase.\n\n" +
+    "⚠️ ZONAS DE ATENÇÃO\nComo " + sabTop2 + " amplificam vulnerabilidades do perfil " + instrSegundo + " desta pessoa. 2-3 frases com situações reais.\n\n" +
+    "🔥 SOB PRESSÃO\n2 frases: como reage e o que os outros percebem que ela não percebe.\n\n" +
+    "🤝 NOS RELACIONAMENTOS\n2 frases: estilo de comunicação, onde gera atrito sem perceber.\n\n" +
+    "🎯 COMO TRABALHAR COM ESSA PESSOA\n3 recomendações numeradas (1, 2, 3). Cada uma completa em 2-3 frases práticas para o consultor aplicar.\n\n" +
+    "💡 SÍNTESE FINAL\n2-3 frases conectando Sabotadores + " + instrSegundo + " no padrão único desta pessoa.\n\n" +
     "Máximo 550 palavras. Complete TODAS as seções.";
 
   // Chamar IA e atualizar box diretamente
@@ -1666,49 +1968,69 @@ function _gerarEMostrar(i) {
 function buildAdminView(r, i) {
   var dn = DISC_NAMES;
   var tn = TEMP_NAMES;
+  var nn = NED_NAMES;
   var DISC_COLORS = {D:"#F87171",I:"#FCD34D",S:"#4ADE80",C:"#60A5FA"};
   var TEMP_COLORS = {Co:"#EF4444",Sa:"#F59E0B",Fl:"#22C55E",Me:"#3B82F6"};
-  var sabNames = {Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+  var NED_COLORS  = {NA:"#3B82F6",NB:"#22C55E",NC:"#F59E0B",ND:"#A78BFA"};
+
+  var tt = r.testType || "A";
+  var ttInfo = TEST_TYPES[tt] || TEST_TYPES.A;
+  var insts = ttInfo.insts;
 
   var h = '';
   h += '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px">';
-  h += '<div style="font-size:18px;font-weight:800;margin-bottom:4px">' + r.name + '</div>';
-  h += '<div style="font-size:13px;color:var(--muted)">' + (r.role||"") + (r.co?" · "+r.co:"") + '</div>';
-  h += '</div>';
-
-  // DISC
-  h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🎯 DISC</div>';
-  h += '<div class="disc4">';
-  ["D","I","S","C"].forEach(function(k){
-    var isL = k === r.discDom;
-    h += '<div class="di'+(isL?' lead':'')+'"><div class="di-l" style="color:'+DISC_COLORS[k]+'">'+k+'</div><div class="di-p">'+r.disc[k]+'%</div><div class="di-n">'+dn[k]+'</div></div>';
-  });
+  h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">';
+  h += '<div><div style="font-size:18px;font-weight:800;margin-bottom:4px">' + r.name + '</div>';
+  h += '<div style="font-size:13px;color:var(--muted)">' + (r.role||"") + (r.co?" · "+r.co:"") + '</div></div>';
+  h += '<span class="chip-test ' + ttInfo.chip + '">🎯 ' + ttInfo.short + '</span>';
   h += '</div></div>';
 
-  // Temp + Brain + QP
-  h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🌡️ Temperamento · 🧠 Cérebro · ✨ QP</div>';
-  Object.keys(tn).forEach(function(k){
-    var pct = r.temp[k];
-    h += '<div class="bar-item"><div class="bar-top"><span>'+tn[k]+'</span><span>'+pct+'%</span></div>';
-    h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+pct+'" style="width:0%;background:'+TEMP_COLORS[k]+'"></div></div></div>';
-  });
-  [{k:"L",n:"Esquerdo",c:"#3B82F6"},{k:"R",n:"Direito",c:"#8B5CF6"}].forEach(function(x){
-    h += '<div class="bar-item"><div class="bar-top"><span>Cérebro '+x.n+'</span><span>'+r.brain[x.k]+'%</span></div>';
-    h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+r.brain[x.k]+'" style="width:0%;background:'+x.c+'"></div></div></div>';
-  });
-  var qc = r.qp.score>=70?"#22C55E":r.qp.score>=45?"#F59E0B":"#EF4444";
-  h += '<div class="bar-item"><div class="bar-top"><span>QP (Inteligência Positiva)</span><span style="color:'+qc+'">'+r.qp.score+'/100</span></div>';
-  h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+r.qp.score+'" style="width:0%;background:'+qc+'"></div></div></div>';
-  h += '</div>';
-
-  // Sabotadores
+  // Sabotadores SEMPRE (eixo comum)
   h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">⚡ Sabotadores</div>';
-  Object.entries(r.sab).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
-    h += '<div class="sab-row"><div class="sab-lbl">'+(sabNames[e[0]]||e[0])+'</div>';
+  Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];}).forEach(function(e){
+    h += '<div class="sab-row"><div class="sab-lbl">'+(SAB_NAMES[e[0]]||e[0])+'</div>';
     h += '<div class="sab-bg"><div class="sab-fill" data-pct="'+e[1]+'" style="width:0%"></div></div>';
     h += '<div class="sab-num">'+e[1]+'</div></div>';
   });
   h += '</div>';
+
+  // DISC (Teste B)
+  if (insts.indexOf("DISC") >= 0) {
+    h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🎯 DISC</div>';
+    h += '<div class="disc4">';
+    ["D","I","S","C"].forEach(function(k){
+      var isL = k === r.discDom;
+      h += '<div class="di'+(isL?' lead':'')+'"><div class="di-l" style="color:'+DISC_COLORS[k]+'">'+k+'</div><div class="di-p">'+(r.disc[k]||0)+'%</div><div class="di-n">'+dn[k]+'</div></div>';
+    });
+    h += '</div></div>';
+  }
+
+  // Temperamentos (Teste C)
+  if (insts.indexOf("TEMP") >= 0) {
+    h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🌡️ Temperamentos</div>';
+    Object.keys(tn).forEach(function(k){
+      var pct = (r.temp && r.temp[k]) || 0;
+      h += '<div class="bar-item"><div class="bar-top"><span>'+tn[k]+'</span><span>'+pct+'%</span></div>';
+      h += '<div class="bar-bg"><div class="bar-fill" data-pct="'+pct+'" style="width:0%;background:'+TEMP_COLORS[k]+'"></div></div></div>';
+    });
+    h += '</div>';
+  }
+
+  // Ned Herrmann (Teste A)
+  if (insts.indexOf("NED") >= 0 && r.ned) {
+    h += '<div class="r-sec" style="margin-bottom:12px"><div class="r-sec-ttl">🧠 Ned Herrmann — 4 Quadrantes</div>';
+    h += '<div class="ned-grid">';
+    ["NA","NB","NC","ND"].forEach(function(k){
+      var pct = r.ned[k] || 0;
+      var isDom = k === r.nedDom;
+      h += '<div class="ned-card' + (isDom ? " ned-dom" : "") + '" style="border-color:' + NED_COLORS[k] + (isDom ? "" : "33") + '">';
+      h += '<div class="ned-pct" style="color:' + NED_COLORS[k] + '">' + pct + '%</div>';
+      h += '<div class="ned-ttl">' + nn[k] + '</div>';
+      h += '<div class="ned-desc">' + NED_DESC[k] + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  }
 
   // Interpretação IA
   h += '<div id="ainterp_'+i+'">';
@@ -1717,7 +2039,7 @@ function buildAdminView(r, i) {
   } else {
     h += '<div class="ibox"><div class="ibox-hdr"><div style="font-size:20px">🧠</div>';
     h += '<div><div style="font-weight:700;color:var(--teal);font-size:14px">Análise Interpretativa</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Exclusivo para o consultor</div></div></div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Exclusivo para o consultor — correlaciona apenas ' + ttInfo.short + '</div></div></div>';
     h += '<button class="btn" style="width:100%" onclick="gerarInterpAdmin('+i+')">Gerar interpretação →</button>';
     h += '<div id="ainterpLoad_'+i+'" style="display:none;text-align:center;padding:16px;color:var(--muted);font-size:13px">Gerando análise com IA...</div>';
     h += '</div>';
@@ -1806,9 +2128,14 @@ function printAdminPDF() {
 function _openAdminPrint(r) {
   var dn = DISC_NAMES;
   var tn = TEMP_NAMES;
+  var nn = NED_NAMES;
   var DISC_COLORS = {D:"#F87171",I:"#FCD34D",S:"#4ADE80",C:"#60A5FA"};
   var TEMP_COLORS = {Co:"#EF4444",Sa:"#F59E0B",Fl:"#22C55E",Me:"#3B82F6"};
-  var sabNames = {Juiz:"Juiz Interno",Controlador:"Controlador",Realizador:"Realizador",Esquivador:"Esquivador",Hiperanalitico:"Hiperanálítico",Prestativo:"Prestativo"};
+  var NED_COLORS  = {NA:"#3B82F6",NB:"#22C55E",NC:"#F59E0B",ND:"#A78BFA"};
+
+  var tt = r.testType || "A";
+  var ttInfo = TEST_TYPES[tt] || TEST_TYPES.A;
+  var insts = ttInfo.insts;
 
   var sabEntries = Object.entries(r.sab||{}).sort(function(a,b){return b[1]-a[1];});
 
@@ -1834,42 +2161,79 @@ function _openAdminPrint(r) {
     interpHtml = '<p style="color:#9ca3af;font-style:italic">Interpretação não gerada ainda. Feche este modal, clique em Ver e aguarde a geração automática.</p>';
   }
 
-  var barsHtml = "";
-  // Temperamento
-  Object.keys(tn).forEach(function(k){
-    var pct = r.temp[k]||0;
-    barsHtml += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>'+tn[k]+'</span><span>'+pct+'%</span></div>';
-    barsHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+TEMP_COLORS[k]+';border-radius:99px"></div></div></div>';
-  });
-  // Cérebro
-  [{k:"L",n:"Esquerdo (Analítico)",c:"#3B82F6"},{k:"R",n:"Direito (Criativo)",c:"#8B5CF6"}].forEach(function(x){
-    var pct=r.brain[x.k]||0;
-    barsHtml += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>'+x.n+'</span><span>'+pct+'%</span></div>';
-    barsHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+x.c+';border-radius:99px"></div></div></div>';
-  });
-  // QP
-  var qpColor = r.qp.score>=70?"#22C55E":r.qp.score>=45?"#F59E0B":"#EF4444";
-  barsHtml += '<div style="margin-bottom:4px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>QP — Inteligência Positiva</span><span style="color:'+qpColor+';font-weight:700">'+r.qp.score+'/100</span></div>';
-  barsHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+r.qp.score+'%;background:'+qpColor+';border-radius:99px"></div></div></div>';
-
-  var discHtml = ["D","I","S","C"].map(function(k){
-    var isL = k===r.discDom;
-    return '<div style="text-align:center;padding:10px 6px;border-radius:8px;background:'+(isL?"#f0fffe":"#f9fafb")+';border:1px solid '+(isL?"#0d9488":"#e5e7eb")+'">' +
-      '<div style="font-size:20px;font-weight:900;color:'+DISC_COLORS[k]+'">'+k+'</div>' +
-      '<div style="font-size:13px;font-weight:700;color:#0d9488;margin-top:2px">'+r.disc[k]+'%</div>' +
-      '<div style="font-size:9px;color:#9ca3af;margin-top:1px">'+dn[k]+'</div>' +
-    '</div>';
-  }).join("");
-
+  // ── Sabotadores HTML ──
   var sabHtml = sabEntries.map(function(e){
     return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">' +
-      '<div style="font-size:11px;color:#374151;width:110px;flex-shrink:0">'+(sabNames[e[0]]||e[0])+'</div>' +
+      '<div style="font-size:11px;color:#374151;width:110px;flex-shrink:0">'+(SAB_NAMES[e[0]]||e[0])+'</div>' +
       '<div style="flex:1;height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+e[1]+'%;background:linear-gradient(90deg,#F59E0B,#EF4444);border-radius:99px"></div></div>' +
       '<div style="font-size:10px;color:#9ca3af;width:28px;text-align:right">'+e[1]+'</div>' +
     '</div>';
   }).join("");
 
+  // ── DISC HTML (Teste B) ──
+  var discHtml = "";
+  if (insts.indexOf("DISC") >= 0) {
+    discHtml = ["D","I","S","C"].map(function(k){
+      var isL = k===r.discDom;
+      return '<div style="text-align:center;padding:10px 6px;border-radius:8px;background:'+(isL?"#f0fffe":"#f9fafb")+';border:1px solid '+(isL?"#0d9488":"#e5e7eb")+'">' +
+        '<div style="font-size:20px;font-weight:900;color:'+DISC_COLORS[k]+'">'+k+'</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#0d9488;margin-top:2px">'+(r.disc[k]||0)+'%</div>' +
+        '<div style="font-size:9px;color:#9ca3af;margin-top:1px">'+dn[k]+'</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  // ── Temperamentos HTML (Teste C) ──
+  var tempHtml = "";
+  if (insts.indexOf("TEMP") >= 0) {
+    Object.keys(tn).forEach(function(k){
+      var pct = (r.temp && r.temp[k]) || 0;
+      tempHtml += '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-bottom:3px"><span>'+tn[k]+'</span><span>'+pct+'%</span></div>';
+      tempHtml += '<div style="height:6px;background:#f3f4f6;border-radius:99px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+TEMP_COLORS[k]+';border-radius:99px"></div></div></div>';
+    });
+  }
+
+  // ── Ned Herrmann HTML (Teste A) — 4 quadrantes ──
+  var nedHtml = "";
+  if (insts.indexOf("NED") >= 0 && r.ned) {
+    nedHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+    ["NA","NB","NC","ND"].forEach(function(k){
+      var pct = r.ned[k] || 0;
+      var isDom = k === r.nedDom;
+      nedHtml += '<div style="padding:10px 8px;border-radius:8px;background:'+(isDom?"#f0fffe":"#f9fafb")+';border:1px solid '+(isDom?"#0d9488":NED_COLORS[k]+"33")+';text-align:center">';
+      nedHtml += '<div style="font-size:18px;font-weight:900;color:'+NED_COLORS[k]+'">'+pct+'%</div>';
+      nedHtml += '<div style="font-size:11px;font-weight:700;margin-top:2px;color:#374151">'+nn[k]+'</div>';
+      nedHtml += '<div style="font-size:9px;color:#6b7280;margin-top:3px;line-height:1.3">'+NED_DESC[k]+'</div>';
+      nedHtml += '</div>';
+    });
+    nedHtml += '</div>';
+  }
+
+  // Badge do hero adapta ao instrumento
+  var heroBadge = "Sabotadores em destaque";
+  if (insts.indexOf("DISC") >= 0 && r.discDom) heroBadge = "Perfil "+r.discDom+" — "+dn[r.discDom];
+  else if (insts.indexOf("TEMP") >= 0 && r.tempDom) heroBadge = "Temperamento: "+tn[r.tempDom];
+  else if (insts.indexOf("NED") >= 0 && r.nedDom) heroBadge = nn[r.nedDom];
+
   var dateStr = new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"});
+
+  // Montar grid superior dinâmico — Sabotadores + segundo instrumento lado a lado
+  var topGridHtml = '';
+  if (discHtml) {
+    topGridHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
+      '<div class="section"><div class="section-title">🎯 Perfil DISC</div><div class="disc-grid">'+discHtml+'</div></div>' +
+      '<div class="section"><div class="section-title">⚡ Sabotadores</div>'+sabHtml+'</div>' +
+    '</div>';
+  } else if (tempHtml) {
+    topGridHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
+      '<div class="section"><div class="section-title">🌡️ Temperamentos</div>'+tempHtml+'</div>' +
+      '<div class="section"><div class="section-title">⚡ Sabotadores</div>'+sabHtml+'</div>' +
+    '</div>';
+  } else if (nedHtml) {
+    topGridHtml =
+      '<div class="section"><div class="section-title">⚡ Sabotadores</div>'+sabHtml+'</div>' +
+      '<div class="section"><div class="section-title">🧠 Ned Herrmann — 4 Quadrantes</div>'+nedHtml+'</div>';
+  }
 
   var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">' +
     '<title>Relatório — '+r.name+'</title>' +
@@ -1892,20 +2256,16 @@ function _openAdminPrint(r) {
     '</style></head><body>' +
     '<div class="header">' +
     '<div><span class="logo-bar"></span><span class="logo-name">VIZZIO</span><span class="logo-tag">TRAINING</span></div>' +
-    '<div style="text-align:right;font-size:11px;color:#6b7280">Relatório Comportamental — Uso do Consultor<br><span style="color:#0d9488;font-weight:700">Análise Interpretativa Integrada</span><br>'+dateStr+'</div>' +
+    '<div style="text-align:right;font-size:11px;color:#6b7280">Relatório Comportamental — Uso do Consultor<br><span style="color:#0d9488;font-weight:700">'+ttInfo.short+'</span><br>'+dateStr+'</div>' +
     '</div>' +
     '<div class="hero">' +
     '<div class="hero-name">'+r.name+'</div>' +
     '<div class="hero-meta">'+(r.role||"")+(r.co?" · "+r.co:"")+'</div>' +
-    '<span class="hero-badge">Perfil '+r.discDom+' — '+dn[r.discDom]+'</span>' +
+    '<span class="hero-badge">'+heroBadge+'</span>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
-    '<div class="section"><div class="section-title">🎯 Perfil DISC</div><div class="disc-grid">'+discHtml+'</div></div>' +
-    '<div class="section"><div class="section-title">⚡ Sabotadores</div>'+sabHtml+'</div>' +
-    '</div>' +
-    '<div class="section"><div class="section-title">🌡️ Temperamento · 🧠 Dominância Cerebral · ✨ QP</div>'+barsHtml+'</div>' +
+    topGridHtml +
     '<div class="section"><div class="section-title">🧠 Análise Interpretativa — Uso Exclusivo do Consultor</div>' +
-    '<div class="label-uso">Gerada por IA · Correlação cruzada de todos os instrumentos</div>' +
+    '<div class="label-uso">Gerada por IA · Correlação: ' + ttInfo.short + '</div>' +
     interpHtml+'</div>' +
     '<div class="footer">' +
     '<div>Vizzio Training · vizziotraining.com.br</div>' +
@@ -2017,14 +2377,21 @@ function genLink() {
   var name  = document.getElementById("cfgName").value.trim() || "Vizzio Assessment";
   var co    = document.getElementById("cfgCo").value.trim();
   var lv    = document.getElementById("cfgLv").value;
-  var key   = document.getElementById("cfgKey").value.trim();
+  var key   = document.getElementById("cfgKey") ? document.getElementById("cfgKey").value.trim() : "";
   if (key) saveKey(key);
-  var base  = location.href.split("?")[0];
-  var url   = base + "?n=" + encodeURIComponent(name) + "&c=" + encodeURIComponent(co) + "&l=" + lv + "&k=" + encodeURIComponent(btoa(key||""));
+  // Tipo de teste selecionado
+  var ttRadio = document.querySelector('input[name="testType"]:checked');
+  var t       = ttRadio ? ttRadio.value : "A";
+  var tInfo   = TEST_TYPES[t] || TEST_TYPES.A;
+  var base    = location.href.split("?")[0];
+  var url     = base + "?n=" + encodeURIComponent(name) + "&c=" + encodeURIComponent(co) + "&l=" + lv + "&t=" + t + "&k=" + encodeURIComponent(btoa(key||""));
   document.getElementById("linkUrl").textContent = url;
   document.getElementById("linkBox").style.display = "block";
-  // Registrar link enviado
-  var phantom = {id:Date.now(),status:"pendente",name:"—",co:co,role:"—",discDom:null,at:new Date().toISOString()};
+  // Mostrar tipo de teste no box do link
+  var tInfoEl = document.getElementById("linkTestInfo");
+  if (tInfoEl) tInfoEl.innerHTML = '<span class="chip-test ' + tInfo.chip + '">🎯 ' + tInfo.short + '</span>';
+  // Registrar link enviado (com tipo de teste)
+  var phantom = {id:Date.now(),status:"pendente",name:"—",co:co,role:"—",discDom:null,testType:t,at:new Date().toISOString()};
   STATE.results.push(phantom);
   saveResults();
   renderStats();
@@ -2054,13 +2421,18 @@ function sendWhatsApp() {
 function initFromURL() {
   var p = new URLSearchParams(location.search);
   if (!p.get("n")) return;
+  var t = (p.get("t") || "A").toUpperCase();
+  if (!TEST_TYPES[t]) t = "A";
   STATE.cfg = {
     name: p.get("n") || "Vizzio Assessment",
     co:   p.get("c") || "",
     lv:   p.get("l") || "lider",
+    testType: t,
     key:  p.get("k") ? (function(){ try{ return atob(p.get("k")); } catch(e){ return ""; } })() : loadKey()
   };
   if (STATE.cfg.key) saveKey(STATE.cfg.key);
+  // Filtrar perguntas para esse tipo de teste
+  QQ = filterQuestionsByTest(t);
   document.getElementById("aTitle").textContent = STATE.cfg.name;
   document.getElementById("aSubtitle").textContent = "Bem-vindo ao diagnóstico comportamental" + (STATE.cfg.co ? " · " + STATE.cfg.co : "") + ". Antes de começar, nos diga um pouco sobre você.";
   showPage("pgAssess");
